@@ -1,16 +1,37 @@
 <div class="container-fluid">
-<div class="navbar-header"><a class="navbar-brand" href="Index.htm"><span style="margin-right:6px" class="glyphicon glyphicon-wrench"/>TFS Tools</a>
-<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-<span class="icon-bar"></span> 
-</button>
-</div>
-<div class="collapse navbar-collapse" id="myNavbar">
-	<ul class="nav navbar-nav ">
-		<li><a href="TeamFollow.htm"><span style="margin-top:3px"  class="glyphicon glyphicon-user "></a></li>
-		<li><a href="WorkFollow.htm"><span style="margin-top:3px"  class="glyphicon glyphicon-list-alt"></a></li>
-	</ul>
-		</div>
+    <div class="navbar-header">
+        <a class="navbar-brand" href="Index.htm"><span style="margin-right:6px" class="glyphicon glyphicon-wrench" />TFS Tools</a>
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+        <ul class="nav navbar-nav ">
+            <li><a href="TeamFollow.htm"><span style="margin-top:3px" class="glyphicon glyphicon-user "/></a></li>
+            <li><a href="WorkFollow.htm"><span style="margin-top:3px" class="glyphicon glyphicon-list-alt"/></a></li>
+        </ul>
+		<ul class="nav navbar-nav navbar-right">
+			<li><a id="updateButton" href="#"><span style="margin-top:3px" class="glyphicon glyphicon-refresh" /></a></li>
+		</ul>
+    </div>	
+	
+    
 </div>
 
+<script>
+
+	console.log("Menu loading");
+	$("#updateButton").click(function() {
+	
+		 console.log("updateClick");
+		  $.ajax({ url: "/api/Update/Force", context: document.body })
+               .done(function (data) { 
+				console.log("updateFinish");
+				location.reload();
+			   });	
+
+	});
+
+</script>
