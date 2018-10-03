@@ -1,0 +1,94 @@
+﻿<html>
+
+<head>
+    <title>Tfs Toni FollowUp tools</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="style.css">
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="tools.js"></script>
+
+    <script type="text/javascript">
+        jQuery(function ($) {
+            $(document).ajaxStop(function () {
+                $("#ajax_loader").hide();
+            });
+            $(document).ajaxStart(function () {
+                $("#ajax_loader").show();
+            });
+        });
+    </script>
+
+    <script>
+
+
+        $(document).ready(function () {
+
+			$("#navbar").load("menu.htm");
+
+			setTimeout(function () {
+				$("[data-toggle=popover]").each(function (i, obj) {
+
+					$(this).popover({
+						html: true,
+						content: function () {
+							var id = $(this).attr('id')
+							return $('#popover-content-' + id).html();
+						}
+					});
+					
+					$(this).on('shown.bs.popover', function(){
+							
+							 $('[data-toggle="tooltip"]').each(function (i, obj) {
+
+										$(this).tooltip({
+												animated: 'fade',
+												placement: 'bottom',
+												container: 'body'
+												});
+							});
+							
+					});
+				});
+					
+            }, 500);
+
+
+            console.log("document loaded");
+
+        });
+
+
+
+        $(window).on("load", function () {
+
+            console.log("window loaded");
+
+        });
+
+    </script>
+
+
+</head>
+
+<body>
+    <div id='ajax_loader' class="overlay">
+        <div class="container-fluid" style="height:100%">
+            <h1 class="centered text-center">loading...</h1>
+        </div>
+    </div>
+	
+	<div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
+
+    <div class="container">
+        <h1>Tfs Toni FollowUp tools</h1>
+    </div>
+
+
+
+</body>
+
+</html>
+

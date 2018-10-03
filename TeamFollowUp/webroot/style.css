@@ -1,0 +1,69 @@
+    .bgprogress {
+            background-color: #2e25257a;
+            -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+        }
+
+        .marginright {
+            margin-right: 20px;
+        }
+
+        .marginleft {
+            margin-left: 20px;
+        }
+
+        .overlay {
+            background: #000000;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            opacity: 0.6;
+            height: 100%;
+            z-index: 2000;
+        }
+
+        .noWrapTable td {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 150px
+        }
+		
+		.progress {
+			
+			margin-bottom:0px
+		}
+		
+		.container {
+			margin-top: 60px;
+            margin-bottom: 60px
+		}
+
+        .popover {
+            max-width: 650px;
+        }
+
+		.popover.right {
+			margin-left: 63px;
+			margin-top: 20px;
+		}
+		
+		.progress-bar-text {
+		
+		width: 100%;
+		float: left;
+		background: transparent
+		}
+		
+		.position-reset {
+			top: 0px;
+			left: 0px;
+			position: absolute
+		}
+		
+		.wrapper {
+			position: relative
+		}
+    

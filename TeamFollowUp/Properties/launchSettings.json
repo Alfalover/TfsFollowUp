@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TfsFollowUp": {
+      "commandName": "Project",
+      "commandLineArgs": "http://+:5000"
+    }
+  }
+}

@@ -1,0 +1,227 @@
+﻿<html>
+
+<head>
+    <title>Team Follow up</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="style.css">
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="tools.js"></script>
+
+    <script type="text/javascript">
+        jQuery(function ($) {
+            $(document).ajaxStop(function () {
+                $("#ajax_loader").hide();
+            });
+            $(document).ajaxStart(function () {
+                $("#ajax_loader").show();
+            });
+        });
+    </script>
+
+    <script>
+
+        function createPopover(index, member) {
+
+            rows = ""
+
+            member.work.Tasks.forEach(function (x) {
+
+                rows += '<tr><td>' + x.id + '</td>' +
+                    '    <td><a target="_blank" rel="noopener noreferrer" href="' + x.Html + '" data-toggle="tooltip" title="' + x.fields["System.Title"] + '">' + x.fields["System.Title"] + '</a></td>' +
+                    '    <td><a target="_blank" rel="noopener noreferrer" href="' + x.parentHtml + '" data-toggle="tooltip" title="' + x.parentName + '">' + x.parentName + '</a></td>' +
+                    '    <td>' + x.fields["Microsoft.VSTS.Scheduling.OriginalEstimate"] + '</td>' +
+                    '    <td>' + x.fields["Microsoft.VSTS.Scheduling.RemainingWork"] + '</td>' +
+                    '    <td>' + x.fields["Microsoft.VSTS.Scheduling.CompletedWork"] + '</td>' +
+                    '</tr>'
+
+            });
+
+
+            $("#popover-contents").append('<div id="popover-content-cplt' + index + '" class="hide">' +
+                '<div class="table-responsive">		' +
+                '<table id="results" class="table noWrapTable"> ' +
+                '    <thead>                        ' +
+                '        <tr>                       ' +
+                '            <th>Id</th>            ' +
+                '            <th>Task</th>	 	    ' +
+                '            <th>Parent</th> 	    ' +
+                '            <th>Orig.</th>' +
+                '            <th>Remai.</th>' +
+                '            <th>Compl.</th>' +
+                '        </tr>                      ' +
+                '    </thead>                       ' +
+                '    <tbody>' + rows + '</tbody>        ' +
+                '    <tfoot>                        ' +
+                '        <tr>                       ' +
+                '            <td></td>              ' +
+                '            <td>Totals:</td>		 	    ' +
+                '            <td></td>		 	    ' +
+                '            <td>' + member.work.Original + '</td>' +
+                '            <td>' + member.work.Remaining + '</td>' +
+                '            <td>' + member.work.Completed + '</td>' +
+                '        </tr>                      ' +
+                '    </tfoot>                       ' +
+                '</table>                           ' +
+                '</div></div>                       '
+            );
+
+        }
+
+
+        $(document).ready(function () {
+
+			$("#navbar").load("menu.htm");
+
+            $.ajax({ url: "/api/TeamFollow", context: document.body })
+
+
+                .done(function (data) {
+
+
+                    var objectList = JSON.parse(data);
+
+                    var sprintName = objectList.sprint.name;
+
+                    $("#sprintId").text(sprintName)
+                    $("#sprintStart").text((new Date(objectList.sprint.attributes.startDate)).toLocaleDateString())
+                    $("#sprintEnd").text((new Date(objectList.sprint.attributes.finishDate)).toLocaleDateString())
+                    $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
+
+                    var index = 0;
+                    objectList.members.forEach(function (x) {
+
+                        var debtpercent = 0;
+                        var completepercent = 100.0;
+
+                        if (x.capacity.CapacityUntilToday > 0) {
+                            debtpercent = 100.0 * (x.capacity.CapacityUntilToday - x.work.Completed) / x.capacity.CapacityUntilToday;
+                            completepercent = 100.0 * (x.work.Completed / x.capacity.CapacityUntilToday);
+                        }
+
+
+                        $("#results tr:last")
+                            .after("<tr>" +
+                                "<td><img style=\"width:25px; height:25px\" class=\"vcenter img-circle\" src=" + x.user.imageUrl + " /></td>" +
+                                "<td><name class=\"col-md-12\"> " + x.user.displayName + "</name></td>" +
+                                "<td><original class=\"col-md-12\"> " + x.work.Original + "</original></td>" +
+                                "<td><Remaining class=\"col-md-12\"> " + x.work.Remaining + "</Remaining></td>" +
+                                "<td><a id=\"cplt" + index + "\" href=\"#\" type=\"button\" data-toggle=\"popover\" data-container=\"body\" data-placement=\"right\" type=\"button\" data-html=\"true\"> "
+                                + "<Completed  class=\"col-md-12\"> " + x.work.Completed + "</Completed></a></td>" +
+                                "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.CapacityUntilToday + "</CapacityUntilToday></td>" +
+                                "<td><Debt class=\"col-md-12\"> " + (x.capacity.CapacityUntilToday - x.work.Completed) + "</Debt></td>" +
+                                "<td>" + progressBar(-100, 100, debtpercent,-20,5,-10,2.5) + "</td>" +
+                                "<td>" + progressBar(0, 100, completepercent, 95) + "</td>" +
+                                "<td><Capacity class=\"col-md-12\"> " + x.capacity.CapacityDay + "</Capacity></td>" +
+                                "<td><CapacitySprint class=\"col-md-12\"> " + x.capacity.CapacitySprint + "</CapacitySprint></td>" +
+                                "</tr>");
+
+                        createPopover(index, x);
+
+                        index++;
+
+                    })
+
+                    setTimeout(function () {
+                        $("[data-toggle=popover]").each(function (i, obj) {
+
+                            $(this).popover({
+                                html: true,
+                                content: function () {
+                                    var id = $(this).attr('id')
+                                    return $('#popover-content-' + id).html();
+                                }
+                            });
+							
+							$(this).on('shown.bs.popover', function(){
+									
+									 $('[data-toggle="tooltip"]').each(function (i, obj) {
+
+												$(this).tooltip({
+														animated: 'fade',
+														placement: 'bottom',
+														container: 'body'
+														});
+									});
+									
+							});
+                        });
+						
+                    }, 500);
+
+
+                });
+
+
+
+            console.log("document loaded");
+
+        });
+
+
+
+        $(window).on("load", function () {
+
+            console.log("window loaded");
+
+        });
+
+    </script>
+
+
+</head>
+
+<body>
+    <div id='ajax_loader' class="overlay">
+        <div class="container-fluid" style="height:100%">
+            <h1 class="centered text-center">loading...</h1>
+        </div>
+    </div>
+	
+	<div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
+
+    <div class="container">
+        <h1>Team follow up</h1>
+        <sprintDesc>
+            <span class="marginleft" id="sprintId">Sprint xxx</span>
+            <span class="pull-right marginright" id="sprintEnd"></span>
+            <span class="pull-right marginright"> To: </span>
+            <span class="pull-right marginright" id="sprintStart"></span>
+            <span class="pull-right marginright"> From: </span>
+        </sprintDesc>
+            <div class="table-responsive">
+                <table id="results" class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Developer</th>
+                            <th>Original      </th>
+                            <th>Remaining     </th>
+                            <th>Completed     </th>
+                            <th>Expected Today</th>
+                            <th>Debt          </th>
+                            <th>Debt %        </th>
+                            <th>Completeness %</th>
+                            <th>Capacity      </th>
+                            <th>Sprint        </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+    </div>
+
+    <div class="footer navbar navbar-inverse navbar-fixed-bottom">
+        <span class="navbar-text pull-right" id="lastUpdateDt"></span>
+        <span class="navbar-text pull-right">Last update:</span>
+    </div>
+
+    <div class="hide" id="popover-contents" />
+
+
+</body>
+
+</html>
+

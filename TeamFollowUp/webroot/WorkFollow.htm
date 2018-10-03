@@ -1,0 +1,293 @@
+﻿<html>
+
+<head>
+
+
+    <title>Workitems follow up</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+   	<link rel="stylesheet" href="style.css">
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="tools.js"></script>
+
+    <script type="text/javascript">
+        jQuery(function ($) {
+            $(document).ajaxStop(function () {
+                $("#ajax_loader").hide();
+            });
+            $(document).ajaxStart(function () {
+                $("#ajax_loader").show();
+            });
+        });
+    </script>
+
+    <script>
+
+		 function fillTable(itertable,itemtable,data)
+		 {
+		 
+					var index = 0;
+                    data.workItems.forEach(function (x) {
+
+						var iterprgs = 0;
+						var iterdev  = 0;
+						var itemprgs = 0;
+						var itemdev  = 0;
+					
+						if (x.IterStats.Completed > 0)
+							iterprgs = 100.0 * x.IterStats.Completed/(x.IterStats.Remaining+x.IterStats.Completed);
+						if (x.IterStats.Original > 0)
+							iterdev  = (100.0 * (x.IterStats.Remaining+x.IterStats.Completed)/x.IterStats.Original)-100; 
+						if (x.ItemStats.Completed > 0)
+							itemprgs = 100.0 * x.ItemStats.Completed/(x.ItemStats.Remaining+x.ItemStats.Completed);
+						if (x.Effort > 0)
+							itemdev  = (100.0 *(x.ItemStats.Remaining+x.ItemStats.Completed)/x.Effort)-100;
+                        
+                        $("#"+itemtable+" tr:last")
+                            .after("<tr>" +
+                                "<td><id>" + x.item.id + "<id/></td>" +
+								'<td><a target="_blank" rel="noopener noreferrer" href="' + x.item.Html + '" data-toggle="tooltip" title="' + x.item.fields["System.Title"] + '">' + x.item.fields["System.Title"] + '</a></td>' +
+                                "<td><state class=\"col-md-12\"> " + x.item.fields["System.State"] + "</state></td>" +
+                                "<td><effort class=\"col-md-12\"> " + x.Effort + "</effort></td>" +
+                                "<td><cross class=\"col-md-12\"> " + x.CrosIter + "</cross></td>" +
+                                "<td><Original  class=\"col-md-12\"> " + x.ItemStats.Original + "</Original></a></td>" +
+								"<td><Remaining  class=\"col-md-12\"> " + x.ItemStats.Remaining + "</Remaining></a></td>" +
+								"<td><Completed  class=\"col-md-12\"> " + x.ItemStats.Completed + "</Completed></a></td>" +
+								"<td>" + progressBar(0, 100, itemprgs) + "</td>" +
+					            "<td>" + progressBar(-100, 100, itemdev,-30,30,-15,15) + "</td>" +
+                                "</tr>");
+								
+						$("#"+itertable+" tr:last")
+                            .after("<tr>" +
+                                "<td><id>" + x.item.id + "<id/></td>" +
+								'<td><a target="_blank" rel="noopener noreferrer" href="' + x.item.Html + '" data-toggle="tooltip" title="' + x.item.fields["System.Title"] + '">' + x.item.fields["System.Title"] + '</a></td>' +
+                                "<td><state class=\"col-md-12\"> " + x.item.fields["System.State"] + "</state></td>" +
+                                "<td><effort class=\"col-md-12\"> " + x.Effort + "</effort></td>" +
+                                "<td><cross class=\"col-md-12\"> " + x.CrosIter + "</cross></td>" +
+                                "<td><iOriginal  class=\"col-md-12\"> " + x.IterStats.Original + "</iOriginal></a></td>" +
+								"<td><iRemaining  class=\"col-md-12\"> " + x.IterStats.Remaining + "</iRemaining></a></td>" +
+								"<td><iCompleted  class=\"col-md-12\"> " + x.IterStats.Completed + "</iCompleted></a></td>" +
+                                "<td>" + progressBar(0, 100, iterprgs) + "</td>" +
+								"<td>" + progressBar(-100, 100, iterdev,-30,30,-15,15) + "</td>" +
+								"</tr>");
+
+//                        createPopover(index, x);
+
+                        index++;
+					});
+		 }
+		 
+		 function updateBoostrap() {
+		 
+					setTimeout(function () {
+                        $("[data-toggle=popover]").each(function (i, obj) {
+
+                            $(this).popover({
+                                html: true,
+                                content: function () {
+                                    var id = $(this).attr('id')
+                                    return $('#popover-content-' + id).html();
+                                }
+                            });
+                        });
+
+                        $('[data-toggle="tooltip"]').each(function (i, obj) {
+
+                            $(this).tooltip({
+                                animated: 'fade',
+                                placement: 'bottom',
+                                container: 'body'
+                            });
+                        });
+
+						
+
+                    }, 500);
+		 
+		 }
+        
+        $(document).ready(function () {
+
+			$("#navbar").load("menu.htm");
+		
+            $.ajax({ url: "/api/WorkFollow?wtype=Product%20Backlog%20Item", context: document.body })
+
+
+                .done(function (data) {
+
+
+                    var objectList = JSON.parse(data);
+
+                    var sprintName = objectList.selSprint.name;
+
+                    $("#sprintId").text(sprintName)
+                    $("#sprintStart").text((new Date(objectList.selSprint.attributes.startDate)).toLocaleDateString())
+                    $("#sprintEnd").text((new Date(objectList.selSprint.attributes.finishDate)).toLocaleDateString())
+                    $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
+
+					fillTable("resultsPbiIter","resultsPbiItem",objectList);
+                    updateBoostrap();
+
+                });
+				
+			$.ajax({ url: "/api/WorkFollow?wtype=Bug", context: document.body })
+
+
+                .done(function (data) {
+
+
+                    var objectList = JSON.parse(data);
+
+					fillTable("resultsBugIter","resultsBugItem",objectList);
+                    updateBoostrap();
+
+                });
+
+
+
+            console.log("document loaded");
+
+        });
+
+
+
+        $(window).on("load", function () {
+
+            console.log("window loaded");
+
+        });
+
+    </script>
+
+
+</head>
+
+<body>
+    <div id='ajax_loader' class="overlay">
+        <div class="container-fluid" style="height:100%">
+            <h1 class="centered text-center">loading...</h1>
+        </div>
+    </div>
+	
+	<div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
+	
+	<div class="container">
+        <h1>Workitems follow up</h1>
+			<sprintDesc>
+				<span class="marginleft" id="sprintId">Sprint xxx</span>
+				<span class="pull-right marginright" id="sprintEnd"></span>
+				<span class="pull-right marginright"> To: </span>
+				<span class="pull-right marginright" id="sprintStart"></span>
+				<span class="pull-right marginright"> From: </span>
+            </sprintDesc>
+
+		<ul class="nav nav-tabs">
+		  <li class="active"><a data-toggle="tab" href="#pbiIter">Pbi Iteration</a></li>
+		  <li><a data-toggle="tab" href="#pbiItem">Pbi</a></li>
+		  <li><a data-toggle="tab" href="#bugIter">Bug Iteration</a></li>
+		  <li><a data-toggle="tab" href="#bugItem">Bug</a></li>
+		</ul>
+
+		<div class="tab-content">
+		  <div id="pbiIter" class="tab-pane fade in active">	
+            <div class="table-responsive">
+                <table id="resultsPbiIter" class="table noWrapTable">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+							<th>State</th>
+                            <th>Effort</th>
+                            <th>X</th>
+							<th>It.Ori</th>
+                            <th>It.Rem</th>
+                            <th>It.Com</th>
+                            <th>It.Prgs %</th>
+                            <th>It.Dev %</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+              </div>
+		  </div>
+		  <div id="pbiItem" class="tab-pane fade">
+		     <div class="table-responsive">
+                <table id="resultsPbiItem" class="table noWrapTable">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+							<th>State</th>
+                            <th>Effort</th>
+                            <th>X</th>
+                            <th>Ori</th>
+                            <th>Rem.</th>
+                            <th>Com.</th>
+                            <th>Prgs %</th>
+                            <th>Dev %</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+              </div>
+		  </div>
+		  <div id="bugIter" class="tab-pane fade">
+		   <div class="table-responsive">
+                <table id="resultsBugIter" class="table noWrapTable">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+							<th>State</th>
+                            <th>Effort</th>
+                            <th>X</th>
+							<th>It.Ori</th>
+                            <th>It.Rem</th>
+                            <th>It.Com</th>
+                            <th>It.Prgs %</th>
+                            <th>It.Dev %</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+              </div>
+		  </div>
+		  <div id="bugItem" class="tab-pane fade">
+		   <div class="table-responsive">
+                <table id="resultsBugItem" class="table noWrapTable">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+							<th>State</th>
+                            <th>Effort</th>
+                            <th>X</th>
+                            <th>Ori</th>
+                            <th>Rem.</th>
+                            <th>Com.</th>
+                            <th>Prgs %</th>
+                            <th>Dev %</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+              </div>
+		  </div>
+		</div>
+	</div>
+  
+
+    <div class="footer navbar navbar-inverse navbar-fixed-bottom">
+        <span class="navbar-text pull-right" id="lastUpdateDt"></span>
+        <span class="navbar-text pull-right">Last update:</span>
+    </div>
+
+    <div class="hide" id="popover-contents" />
+
+
+</body>
+
+</html>
+
