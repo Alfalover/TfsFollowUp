@@ -26,7 +26,8 @@
 
         $(document).ready(function () {
 
-			$("#navbar").load("menu.htm");
+			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
+		
 
 			setTimeout(function () {
 				$("[data-toggle=popover]").each(function (i, obj) {
