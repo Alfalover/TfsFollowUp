@@ -33,7 +33,7 @@
         
                       let wi =
                           try
-                            tfs.GetWorkItemsQuery (session,QueryId)
+                            tfs.GetWorkItemsQuery session QueryId
                           with ex -> printfn "Error %s" (ex.ToString()); {queryType="none";asOf=DateTime.MinValue;columns=[||];workItemRelations=[||]}
         
                       let wi2 =

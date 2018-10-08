@@ -22,6 +22,13 @@ type CompletedWork = {
     members : MemberFollowupStats[]
     lastUpdate : DateTime
 }
+
+type TeamSummary = {
+
+    sprint : Sprint
+    lastUpdate : DateTime
+}
+ 
  
 [<Route("api/CompletedWork")>]
 type CompletedWorkController(workitems : WorkItemService, update : UpdateService) =
@@ -39,28 +46,42 @@ type TeamCapacityController(capacities : CapacityService, update : UpdateService
  
     [<HttpGet>]
     member this.Get() = 
-        let current = update.SprintsList  |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
-        let teamWork = capacities.GetTeamMembersWork(current.Head)
-        JsonConvert.SerializeObject(teamWork)
+        update.SprintsList  
+        |> List.tryFind(fun x -> x.attributes.timeFrame = TimeFrame.current) 
+        |> function
+            | Some value -> value |> capacities.GetTeamMembersWork 
+                                  |> JsonConvert.SerializeObject
+            | None -> ""
 
 [<Route("api/TeamFollow")>]
 type TeamFollowController(workitems : WorkItemService, capacities : CapacityService, update : UpdateService) =
     inherit ControllerBase()
  
+     [<Route("Summary")>]
+    member this.Summary() = 
+                
+        update.SprintsList  |> List.tryFind(fun x -> x.attributes.timeFrame = TimeFrame.current)
+                            |> function 
+                                | Some current -> { sprint = current
+                                                    lastUpdate = update.LastUpdate}
+                                                  |> JsonConvert.SerializeObject
+                                | None -> ""
+
     [<HttpGet>]
     member this.Get() = 
         let current = update.SprintsList  |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
-        let teamWork = workitems.GetMembersWorkStats(current.Head)
-        let capacity = capacities.GetTeamMembersWork(current.Head)
-
-        let list = capacity |> Seq.map(fun x -> { user = x.User; 
+        let teamWork = workitems.GetMembersWorkStats current.Head 
+        let list = capacities.GetTeamMembersWork current.Head 
+                   |> Seq.map(fun x -> { user = x.User; 
                                                    capacity =x; 
-                                                   work = teamWork |> List.filter(fun z -> z.user = x.User.displayName) |> List.head })
-        let output = { sprint = current.Head; 
-                       members = list |> Array.ofSeq
-                       lastUpdate = update.LastUpdate}
+                                                   work = teamWork 
+                                                          |> List.filter(fun z -> z.user = x.User.displayName) 
+                                                          |> List.head })
+        { sprint = current.Head; 
+          members = list |> Array.ofSeq
+          lastUpdate = update.LastUpdate}
 
-        JsonConvert.SerializeObject(output)
+        |> JsonConvert.SerializeObject
 
 [<Route("api/WorkFollow")>]
 type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
@@ -68,9 +89,11 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
  
     [<HttpGet>]
     member this.Get(wtype:string) = 
-        let current = update.SprintsList  |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
-        let output = workitems.GetWorkItemStats(current.Head,wtype)
-        JsonConvert.SerializeObject(output)
+        update.SprintsList  
+        |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
+        |> List.head
+        |>  workitems.GetWorkItemStats wtype
+        |> JsonConvert.SerializeObject
 
 [<Route("api/Update")>]
 type UpdateController(sessionService: SessionService, update : UpdateService) =
@@ -78,13 +101,13 @@ type UpdateController(sessionService: SessionService, update : UpdateService) =
  
     [<Route("State")>]
     member this.State() = 
-        let output = update.UpdateInProgress
-        JsonConvert.SerializeObject(output)
+        update.UpdateInProgress
+        |> JsonConvert.SerializeObject
 
     [<Route("Force")>]
     member this.Force() = 
-        let output =  update.forceUpdate sessionService.currentSession
-        JsonConvert.SerializeObject(output)
+        update.forceUpdate sessionService.currentSession
+        |> JsonConvert.SerializeObject
 
 
    

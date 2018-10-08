@@ -96,10 +96,10 @@
                         var debtpercent = 0;
                         var completepercent = 100.0;
 
-                        if (x.capacity.CapacityUntilToday > 0) {
-                            debtpercent = 100.0 * (x.capacity.CapacityUntilToday - x.work.Completed) / x.capacity.CapacityUntilToday;
-                            completepercent = 100.0 * (x.work.Completed / x.capacity.CapacityUntilToday);
-                        }
+                        if (x.capacity.Stats.CapacityUntilToday > 0) {
+                            debtpercent = 100.0 * (x.capacity.Stats.CapacityUntilToday - x.work.Completed) / x.capacity.Stats.CapacityUntilToday;
+                            completepercent = 100.0 * (x.work.Completed / x.capacity.Stats.CapacityUntilToday);
+                        }2
 
 
                         $("#results tr:last")
@@ -110,12 +110,12 @@
                                 "<td><Remaining class=\"col-md-12\"> " + x.work.Remaining + "</Remaining></td>" +
                                 "<td><a id=\"cplt" + index + "\" href=\"#\" type=\"button\" data-toggle=\"popover\" data-container=\"body\" data-placement=\"right\" type=\"button\" data-html=\"true\"> "
                                 + "<Completed  class=\"col-md-12\"> " + x.work.Completed + "</Completed></a></td>" +
-                                "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.CapacityUntilToday + "</CapacityUntilToday></td>" +
-                                "<td><Debt class=\"col-md-12\"> " + (x.capacity.CapacityUntilToday - x.work.Completed) + "</Debt></td>" +
+                                "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.Stats.CapacityUntilToday + "</CapacityUntilToday></td>" +
+                                "<td><Debt class=\"col-md-12\"> " + (x.capacity.Stats.CapacityUntilToday - x.work.Completed) + "</Debt></td>" +
                                 "<td>" + progressBar(-100, 100, debtpercent,-20,5,-10,2.5) + "</td>" +
                                 "<td>" + progressBar(0, 100, completepercent, 95) + "</td>" +
-                                "<td><Capacity class=\"col-md-12\"> " + x.capacity.CapacityDay + "</Capacity></td>" +
-                                "<td><CapacitySprint class=\"col-md-12\"> " + x.capacity.CapacitySprint + "</CapacitySprint></td>" +
+                                "<td><Capacity class=\"col-md-12\"> " + x.capacity.Stats.CapacityDay + "</Capacity></td>" +
+                                "<td><CapacitySprint class=\"col-md-12\"> " + x.capacity.Stats.CapacitySprint + "</CapacitySprint></td>" +
                                 "</tr>");
 
                         createPopover(index, x);

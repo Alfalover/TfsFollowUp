@@ -14,42 +14,64 @@
            let cap = m.activities.[0].capacityPerDay;
 
            if sStart.HasValue && sEnd.HasValue then
-                let days = (int)((sEnd.Value-sStart.Value).TotalDays)
-
                 let workList = GetDaysSeq(sStart.Value,sEnd.Value)
                                |> Seq.filter(fun x -> x.DayOfWeek <> DayOfWeek.Saturday && x.DayOfWeek <> DayOfWeek.Sunday)
                 
-                let teamDaysOff = t |> List.map(fun x -> GetDaysSeq(x.start,x.``end``)) |> Seq.concat
-                let userDaysOff = m.daysOff |> List.ofArray
-                                  |> List.map(fun x -> GetDaysSeq(x.start,x.``end``)) |> Seq.concat
+                let teamDaysOff = t |> List.map(fun x -> GetDaysSeq(x.start,x.``end``)) 
+                                    |> Seq.concat
 
-                let DaysOff = [teamDaysOff;userDaysOff] |> Seq.ofList |> Seq.concat
+                let userDaysOff = m.daysOff
+                                  |> List.ofArray
+                                  |> List.map(fun x -> GetDaysSeq(x.start,x.``end``)) 
+                                  |> Seq.concat
 
-                let workList = workList |> Seq.filter(fun x -> not (DaysOff|> Seq.contains(x)))
+                let DaysOff = [teamDaysOff;userDaysOff] 
+                                  |> Seq.ofList 
+                                  |> Seq.concat
+
+                let workList = workList |> Seq.filter(fun x -> not (DaysOff |> Seq.contains(x)))
 
                 cap*(double)(Seq.length(workList))
            else 
                 0.0
-    type MemberStats = {
-    
-        User: TeamMember
+
+    type capacityStats = { 
 
         CapacityDay : double
         CapacitySprint: double
         CapacityUntilToday : double
     }
-        
-        
+
+    type MemberStats = {
+
+        User: TeamMember
+        Stats: capacityStats
+    }
+
+
+    
     type CapacityService(sessionService: SessionService, tfs: TfsService, upd : UpdateService) = 
 
+    
         member this.GetTeamMembersWork (sprint: Sprint) =
-               let data = tfs.GetMemberCapacities (sessionService.currentSession,sprint.id)
-               let teamdaysoff = tfs.GetTeamCapacities(sessionService.currentSession,sprint.id).daysOff |> List.ofArray
+               let data = tfs.GetMemberCapacities sessionService.currentSession sprint.id
+               let teamdaysoff = (tfs.GetTeamCapacities sessionService.currentSession sprint.id).daysOff |> List.ofArray
                
                let members = data.value |> List.ofArray
                                         |> List.map(fun x -> {User = x.teamMember
-                                                              CapacityDay = x.activities.[0].capacityPerDay
-                                                              CapacitySprint = GetUserCapacity(x,sprint.attributes.startDate,sprint.attributes.finishDate,teamdaysoff)
-                                                              CapacityUntilToday = GetUserCapacity(x,sprint.attributes.startDate,Nullable (DateTime.Today.AddDays(-1.0)),teamdaysoff)})
-    
+                                                              Stats = {CapacityDay = x.activities.[0].capacityPerDay
+                                                                       CapacitySprint = GetUserCapacity(x,sprint.attributes.startDate,sprint.attributes.finishDate,teamdaysoff)
+                                                                       CapacityUntilToday = GetUserCapacity(x,sprint.attributes.startDate,Nullable (DateTime.Today.AddDays(-1.0)),teamdaysoff)}})
+     
                members
+        
+        member this.GetTeamWork (sprint: Sprint) =
+               
+               this.GetTeamMembersWork sprint
+               |> List.groupBy (fun x -> true)
+               |> List.map (fun (x,y) -> {
+                                        CapacityDay = y |> List.sumBy(fun z -> z.Stats.CapacityDay)
+                                        CapacitySprint = y |> List.sumBy(fun z -> z.Stats.CapacitySprint)
+                                        CapacityUntilToday = y |> List.sumBy(fun z -> z.Stats.CapacityUntilToday)
+                                     })
+

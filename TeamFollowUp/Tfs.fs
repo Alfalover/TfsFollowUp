@@ -141,11 +141,6 @@ open Microsoft.Extensions.Configuration
                             "Microsoft.VSTS.Common.ClosedDate,Microsoft.VSTS.Scheduling.OriginalEstimate," + 
                             "Microsoft.VSTS.Scheduling.CompletedWork,PBI.FinalEffort"
                             
-
-        
-
- 
-
         member this.GetDataObject<'T> (session : sessionHolder, url:Uri) = 
             printfn "REQ:%s " (url.ToString())
             let req = WebRequest.Create(url)
@@ -160,33 +155,38 @@ open Microsoft.Extensions.Configuration
         member this.GetSprintsList session = 
             this.GetDataObject<SprintList>(session,SprintsUri)
 
-        member this.GetMemberCapacities (session,sprintGuid) = 
+        member this.GetMemberCapacities session sprintGuid = 
             this.GetDataObject<memberCapacityList> (session,MemberCapacitiesUri sprintGuid)
 
-        member this.GetTeamCapacities (session,sprintGuid) = 
+        member this.GetTeamCapacities  session sprintGuid  = 
             this.GetDataObject<teamCapacityList> (session,TeamCapacitiesUri sprintGuid)
         
-        member this.GetWorkItemsQuery (session,queryId) = 
+        member this.GetWorkItemsQuery session queryId = 
             this.GetDataObject<workItemsQueryList> (session, WorkItemsUri queryId)
 
         member this.GetWorkItemsList (session, relations : workItemRelation[]) =
-            let relList = relations |> List.ofArray
-
-            let requestChunkIds = relList |> List.map(fun x -> x.target.id) |> List.chunkBySize(100)
+            let relList = relations |> List.ofArray 
             
-            let parents = requestChunkIds |> List.map(fun x -> 
-                let ids = x |> String.concat(",")
-                this.GetDataObject<workItemList>(session, WorkItemUri (ids,requestFields))) 
+            let plain = relList 
+                          |> List.map(fun x -> x.target.id) 
+                          |> List.chunkBySize(100) 
+                          |> List.map(fun x -> 
+                                            let ids = x |> String.concat(",")
+                                            this.GetDataObject<workItemList>(session, WorkItemUri (ids,requestFields))) 
+                          |> List.collect(fun x -> x.value |> List.ofArray)
 
-            let plain = parents |> List.collect(fun x -> x.value |> List.ofArray)
+            let rootsIds = relList 
+                            |> List.filter(fun x -> x.rel = null) 
+                            |> List.map(fun x -> x.target.id)
 
-            let rootsIds = relList |> List.filter(fun x -> x.rel = null) |> List.map(fun x -> x.target.id)
-            let roots = plain |> List.filter(fun x -> rootsIds |> List.contains(x.id))
+            let endRoots = plain 
+                           |> List.filter(fun x -> rootsIds |> List.contains(x.id))
+                           |> List.map(fun t ->
 
-            let endRoots = roots |> List.map(fun t ->
-                                     let childrenRel =  relList |> List.filter(fun x -> x.rel <> null) 
+                                     let childrenIds =  relList |> List.filter(fun x -> x.rel <> null) 
                                                                 |> List.filter(fun x -> x.source.id = t.id)
-                                     let childrenIds = childrenRel |> List.map(fun x -> x.target.id)
+                                                                |> List.map(fun x -> x.target.id)
+
                                      let children = plain |> List.filter(fun x -> childrenIds |> List.contains(x.id))
                                                           |> List.map(fun x -> {x with Html= workItemHtmlLink x.id
                                                                                        parentName = t.fields.``System.Title``;
