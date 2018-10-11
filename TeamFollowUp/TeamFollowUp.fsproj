@@ -27,19 +27,18 @@
     <Content Include="webroot\index.htm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Session.fs" />
-    <Compile Include="Tfs.fs" />
-    <Compile Include="Update.fs" />
-    <Compile Include="Capacity.fs" />
-    <Compile Include="WorkItem.fs" />
-    <Compile Include="Controllers.fs" />
-    <Compile Include="Program.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="webroot\jquery-3.3.1.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Compile Include="Session.fs" />
+    <Compile Include="Services\Tfs.fs" />
+    <Compile Include="Services\Update.fs" />
+    <Compile Include="Services\Capacity.fs" />
+    <Compile Include="Services\WorkItem.fs" />
+    <Compile Include="Controllers\ControllerWorkFollow.fs" />
+    <Compile Include="Controllers\ControllerTeamFollow.fs" />
+    <Compile Include="Controllers\ControllerUpdate.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>

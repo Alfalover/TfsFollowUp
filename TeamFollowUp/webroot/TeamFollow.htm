@@ -27,7 +27,7 @@
 
             rows = ""
 
-            member.work.Tasks.forEach(function (x) {
+            member.work.Fields[0].Tasks.forEach(function (x) {
 
                 rows += '<tr><td>' + x.id + '</td>' +
                     '    <td><a target="_blank" rel="noopener noreferrer" href="' + x.Html + '" data-toggle="tooltip" title="' + x.fields["System.Title"] + '">' + x.fields["System.Title"] + '</a></td>' +
@@ -59,9 +59,9 @@
                 '            <td></td>              ' +
                 '            <td>Totals:</td>		 	    ' +
                 '            <td></td>		 	    ' +
-                '            <td>' + member.work.Original + '</td>' +
-                '            <td>' + member.work.Remaining + '</td>' +
-                '            <td>' + member.work.Completed + '</td>' +
+                '            <td>' + member.work.Fields[0].Original + '</td>' +
+                '            <td>' + member.work.Fields[0].Remaining + '</td>' +
+                '            <td>' + member.work.Fields[0].Completed + '</td>' +
                 '        </tr>                      ' +
                 '    </tfoot>                       ' +
                 '</table>                           ' +
@@ -92,66 +92,33 @@
 
                     var index = 0;
                     objectList.members.forEach(function (x) {
-
-                        var debtpercent = 0;
-                        var completepercent = 100.0;
-
-                        if (x.capacity.Stats.CapacityUntilToday > 0) {
-                            debtpercent = 100.0 * (x.capacity.Stats.CapacityUntilToday - x.work.Completed) / x.capacity.Stats.CapacityUntilToday;
-                            completepercent = 100.0 * (x.work.Completed / x.capacity.Stats.CapacityUntilToday);
-                        }2
-
-
-                        $("#results tr:last")
+                        
+                       if(x.work !== null){
+                       
+  					   $("#results tr:last")
                             .after("<tr>" +
                                 "<td><img style=\"width:25px; height:25px\" class=\"vcenter img-circle\" src=" + x.user.imageUrl + " /></td>" +
                                 "<td><name class=\"col-md-12\"> " + x.user.displayName + "</name></td>" +
-                                "<td><original class=\"col-md-12\"> " + x.work.Original + "</original></td>" +
-                                "<td><Remaining class=\"col-md-12\"> " + x.work.Remaining + "</Remaining></td>" +
+                                "<td><original class=\"col-md-12\"> " + x.work.Fields[0].Original + "</original></td>" +
+                                "<td><Remaining class=\"col-md-12\"> " + x.work.Fields[0].Remaining + "</Remaining></td>" +
                                 "<td><a id=\"cplt" + index + "\" href=\"#\" type=\"button\" data-toggle=\"popover\" data-container=\"body\" data-placement=\"right\" type=\"button\" data-html=\"true\"> "
-                                + "<Completed  class=\"col-md-12\"> " + x.work.Completed + "</Completed></a></td>" +
+                                + "<Completed  class=\"col-md-12\"> " + x.work.Fields[0].Completed + "</Completed></a></td>" +
                                 "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.Stats.CapacityUntilToday + "</CapacityUntilToday></td>" +
-                                "<td><Debt class=\"col-md-12\"> " + (x.capacity.Stats.CapacityUntilToday - x.work.Completed) + "</Debt></td>" +
-                                "<td>" + progressBar(-100, 100, debtpercent,-20,5,-10,2.5) + "</td>" +
-                                "<td>" + progressBar(0, 100, completepercent, 95) + "</td>" +
+                                "<td><Debt class=\"col-md-12\"> " + (x.capacity.Stats.CapacityUntilToday - x.work.Fields[0].Completed) + "</Debt></td>" +
+                                "<td>" + progressBar(-100, 100, x.debt,-20,5,-10,2.5) + "</td>" +
+                                "<td>" + progressBar(0, 100, x.completeness, 95) + "</td>" +
                                 "<td><Capacity class=\"col-md-12\"> " + x.capacity.Stats.CapacityDay + "</Capacity></td>" +
                                 "<td><CapacitySprint class=\"col-md-12\"> " + x.capacity.Stats.CapacitySprint + "</CapacitySprint></td>" +
                                 "</tr>");
 
                         createPopover(index, x);
+						
+						}
 
                         index++;
 
                     })
-
-                    setTimeout(function () {
-                        $("[data-toggle=popover]").each(function (i, obj) {
-
-                            $(this).popover({
-                                html: true,
-                                content: function () {
-                                    var id = $(this).attr('id')
-                                    return $('#popover-content-' + id).html();
-                                }
-                            });
-							
-							$(this).on('shown.bs.popover', function(){
-									
-									 $('[data-toggle="tooltip"]').each(function (i, obj) {
-
-												$(this).tooltip({
-														animated: 'fade',
-														placement: 'bottom',
-														container: 'body'
-														});
-									});
-									
-							});
-                        });
-						
-                    }, 500);
-
-
+					updateBoostrap();
                 });
 
 

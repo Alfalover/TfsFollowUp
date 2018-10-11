@@ -8,6 +8,7 @@
 	<link rel="stylesheet" href="style.css">
     <script src="jquery-3.3.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
 	<script src="tools.js"></script>
 
     <script type="text/javascript">
@@ -23,41 +24,85 @@
 
     <script>
 
+		globalValues = { pbi : {}, bug : {}};
 
         $(document).ready(function () {
 
 			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
 		
+		
+			//$.ajax({ url: "/api/TeamFollow/Summary", context: document.body })
+            //
+            //
+            //    .done(function (data) {
+            //
+            //
+            //        var objectList = JSON.parse(data);
+            //
+            //        var sprintName = objectList.sprint.name;
+			//		
+            //
+            //
+            //        $("#sprintId").text(sprintName)
+            //        //$("#sprintStart").text((new Date(objectList.sprint.attributes.startDate)).toLocaleDateString())
+            //        //$("#sprintEnd").text((new Date(objectList.sprint.attributes.finishDate)).toLocaleDateString())
+            //        $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
+			//		
+			//		
+			//		
+			//		console.log("team")
+			//		updateBoostrap();
+            //    });
+			
+			$.ajax({ url: "/api/WorkFollow/Summary?wtype=Product%20Backlog%20Item", context: document.body })
 
-			setTimeout(function () {
-				$("[data-toggle=popover]").each(function (i, obj) {
 
-					$(this).popover({
-						html: true,
-						content: function () {
-							var id = $(this).attr('id')
-							return $('#popover-content-' + id).html();
-						}
-					});
+                .done(function (data) {
+
+
+                    var objectList = JSON.parse(data);
+
+                    globalValues.pbi.Effort = objectList.summary.Effort;
+					globalValues.pbi.count  = objectList.summary.Count;
+					globalValues.pbi.stats  = objectList.summary.Stats;
+					globalValues.pbi.cmp    = objectList.summary.Cmp;					
 					
-					$(this).on('shown.bs.popover', function(){
-							
-							 $('[data-toggle="tooltip"]').each(function (i, obj) {
-
-										$(this).tooltip({
-												animated: 'fade',
-												placement: 'bottom',
-												container: 'body'
-												});
-							});
-							
-					});
-				});
+					var labels = getStateLabels();
+					var colors = getStateColors();
+					var dataset= mapLabelDataset(labels,objectList.summary.StateCount);
 					
-            }, 500);
+					createPieChart("statePie","workItems",dataset,labels,colors);
+					console.log("pbi");
+      
+					updateBoostrap();
+            });
+			
+			$.ajax({ url: "/api/WorkFollow/Summary?wtype=Bug", context: document.body })
 
 
-            console.log("document loaded");
+                .done(function (data) {
+
+
+                    var objectList = JSON.parse(data);
+
+                    globalValues.bug.Effort = objectList.summary.Effort;
+					globalValues.bug.count  = objectList.summary.Count;
+					globalValues.bug.stats  = objectList.summary.Stats;
+					globalValues.bug.cmp    = objectList.summary.Cmp;	
+
+					var labels = getStateLabels();
+					var colors = getStateColors();
+					var dataset= mapLabelDataset(labels,objectList.summary.StateCount);										
+					
+					createPieChart("statePie","Bugs",dataset,labels,colors);
+					console.log("bugs");
+      
+					updateBoostrap();
+            });
+
+
+			updateBoostrap();
+			console.log("document loaded");
 
         });
 
@@ -83,11 +128,44 @@
 	
 	<div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
 
+	
     <div class="container">
-        <h1>Tfs Toni FollowUp tools</h1>
+       
+	    <div class="row" >
+			<div class="col-lg-12">
+				<h1 id="sprintId">Summary</h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-lg-4">
+				<h2>WorkItems</h2>
+				content
+			</div>
+			<div class="col-lg-4"> Middle</div>
+			<div class="col-lg-4">
+				<h2>Bugs</h2>
+				content
+			</div>
+		</div>
+		<div class="row">
+				<div class="col-lg-4"> left area </div>
+				<div class="col-lg-4">
+						<canvas id="statePie"/>
+				</div>
+				<div class="col-lg-4"> right area </div>
+		</div>
+		<div class="row">
+			<div class="col-lg-12">
+				<h2>Team</h2>
+				content
+			</div>
+		</div>
     </div>
 
-
+    <div class="footer navbar navbar-inverse navbar-fixed-bottom">
+        <span class="navbar-text pull-right" id="lastUpdateDt"></span>
+        <span class="navbar-text pull-right">Last update:</span>
+    </div>
 
 </body>
 

@@ -31,19 +31,19 @@
 					var index = 0;
                     data.workItems.forEach(function (x) {
 
-						var iterprgs = 0;
-						var iterdev  = 0;
-						var itemprgs = 0;
-						var itemdev  = 0;
+						var iterprgs = x.IterStatsCmp.Progress;
+                        var iterdev = x.IterStatsCmp.Deviation;
+						var itemprgs = x.ItemStatsCmp.Progress;
+						var itemdev  = x.ItemStatsCmp.Deviation;
 					
-						if (x.IterStats.Completed > 0)
-							iterprgs = 100.0 * x.IterStats.Completed/(x.IterStats.Remaining+x.IterStats.Completed);
-						if (x.IterStats.Original > 0)
-							iterdev  = (100.0 * (x.IterStats.Remaining+x.IterStats.Completed)/x.IterStats.Original)-100; 
-						if (x.ItemStats.Completed > 0)
-							itemprgs = 100.0 * x.ItemStats.Completed/(x.ItemStats.Remaining+x.ItemStats.Completed);
-						if (x.Effort > 0)
-							itemdev  = (100.0 *(x.ItemStats.Remaining+x.ItemStats.Completed)/x.Effort)-100;
+						//if (x.IterStats.Completed > 0)
+						//	iterprgs = 100.0 * x.IterStats.Completed/(x.IterStats.Remaining+x.IterStats.Completed);
+						//if (x.IterStats.Original > 0)
+						//	iterdev  = (100.0 * (x.IterStats.Remaining+x.IterStats.Completed)/x.IterStats.Original)-100; 
+						//if (x.ItemStats.Completed > 0)
+						//	itemprgs = 100.0 * x.ItemStats.Completed/(x.ItemStats.Remaining+x.ItemStats.Completed);
+						//if (x.Effort > 0)
+						//	itemdev  = (100.0 *(x.ItemStats.Remaining+x.ItemStats.Completed)/x.Effort)-100;
                         
                         $("#"+itemtable+" tr:last")
                             .after("<tr>" +

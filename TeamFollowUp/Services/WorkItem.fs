@@ -42,6 +42,21 @@
         lastUpdate: DateTime
     }
 
+    type stateStat= {
+        name:String
+        count:int
+    }
+
+    type wGlobalStats = {
+        kind : string
+        Effort : double
+        Stats : workStats
+        StatsCmp : workStatsComputation
+        StateCount : stateStat[]
+        Count : int
+    }
+
+
 
     type WorkItemService(sessionService :SessionService, tfs: TfsService, upd : UpdateService) = 
     
@@ -118,6 +133,32 @@
                            lastUpdate = upd.LastUpdate}
             result
 
+        member this.GetGlobalWorkStats kind sprint = 
+
+            let full= this.GetWorkItemStats kind sprint
+            let items = full.workItems |> List.ofArray
+
+            let stateCount = items  |> List.groupBy(fun x -> x.item.fields.``System.State``)
+                                    |> List.map(fun (x,y)-> {
+                                                        name = x
+                                                        count =y.Length
+                                                      })
+                                    
+
+            { kind = kind
+              Effort = items |> List.sumBy(fun x -> x.Effort)
+              Stats= { Completed = items |> List.sumBy(fun x -> x.IterStats.Completed)
+                       Remaining = items |> List.sumBy(fun x -> x.IterStats.Remaining)
+                       Original = items |> List.sumBy(fun x -> x.IterStats.Original)
+                     }
+              StatsCmp = {Progress = items |> List.averageBy(fun x -> x.IterStatsCmp.Progress)
+                          Deviation = items |> List.averageBy(fun x -> x.IterStatsCmp.Deviation)
+                         }
+              StateCount = stateCount |> Array.ofList
+              Count = items.Length
+            }
+
+        // Unused to remove...
         member this.GetTeamWorkStats sprint = 
 
             [ upd.WorkItemsList |> List.collect(fun x -> x.children |> List.ofArray); upd.WorkItemsList ] 
@@ -132,6 +173,7 @@
                                               Completed = y |> List.sumBy(fun z -> z.fields.``Microsoft.VSTS.Scheduling.CompletedWork``) 
                                               Tasks = y
                                              })
+                                |> List.head
 
         member this.GetMembersWorkStats (sprint: Sprint) =
 
