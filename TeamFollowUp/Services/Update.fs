@@ -5,6 +5,18 @@
     open System.IO
     open Tfs
     open Microsoft.Extensions.Configuration
+    open System.Collections.Generic
+
+
+    type memberCapacityRegister = {
+        memberItem : memberCapacityList
+        timestamp : DateTime
+    }
+
+    type teamCapacityRegister = {
+        teamItem : teamCapacityList
+        timestamp : DateTime
+    }
 
     let ConvertBool str =
             match System.Boolean.TryParse(str) with
@@ -16,11 +28,50 @@
         member val UpdateInProgress = false with get,set
 
         member val updateEvent = new Event<DateTime>()
-    
+
+        member val CapacityDictionary = new Dictionary<string,memberCapacityRegister>() with get,set
+        member val DaysOffDictionary  = new Dictionary<string,teamCapacityRegister>() with get, set
         member val SprintsList =  List.empty<Sprint> with get,set
         member val WorkItemsList = List.empty<workItem> with get,set
         member val LastUpdate = DateTime.MinValue with get, set
     
+        
+        member this.requestMemberCapacities session sprintGuid =
+             let res = tfs.GetMemberCapacities session sprintGuid
+             let reg = {memberItem= res 
+                        timestamp = DateTime.UtcNow}
+             this.CapacityDictionary.[sprintGuid] <- reg
+             File.WriteAllText("MemberCapList.txt",JsonConvert.SerializeObject(this.CapacityDictionary))
+             res
+
+        member this.requestTeamCapacities session sprintGuid =
+             let res = tfs.GetTeamCapacities session sprintGuid
+             let reg = {teamItem= res 
+                        timestamp = DateTime.UtcNow}
+             this.DaysOffDictionary.[sprintGuid] <- reg
+             File.WriteAllText("TeamCapList.txt",JsonConvert.SerializeObject(this.DaysOffDictionary))
+             res        
+        
+        member this.GetMemberCapacities session sprintGuid = 
+            
+            if this.CapacityDictionary.ContainsKey(sprintGuid) then 
+                 if not (ConvertBool (config.Item "tfs:UpdateDisabled")) then    
+                    this.requestMemberCapacities session sprintGuid 
+                 else
+                    this.CapacityDictionary.[sprintGuid].memberItem
+            else 
+                 this.requestMemberCapacities session sprintGuid
+
+        member this.GetTeamCapacities  session sprintGuid  = 
+            if this.DaysOffDictionary.ContainsKey(sprintGuid) then 
+                 if not (ConvertBool (config.Item "tfs:UpdateDisabled")) then    
+                   this.requestTeamCapacities session sprintGuid
+                 else
+                    this.DaysOffDictionary.[sprintGuid].teamItem
+            else 
+                 this.requestTeamCapacities session sprintGuid
+        
+
         member this.performUpdate session = 
                       
                       this.UpdateInProgress <- true; 
@@ -70,6 +121,10 @@
                     this.SprintsList <- sprintsList
                     this.WorkItemsList <- workItemsList
                     this.LastUpdate <- lastUpdate
+                    if File.Exists("MemberCapList.txt") then
+                        this.CapacityDictionary <- JsonConvert.DeserializeObject<Dictionary<string,memberCapacityRegister>>(File.ReadAllText("MemberCapList.txt"))
+                    if File.Exists("TeamCapList.txt") then
+                        this.DaysOffDictionary <- JsonConvert.DeserializeObject<Dictionary<string,teamCapacityRegister>>(File.ReadAllText("TeamCapList.txt"))
                with ex ->  printfn "Unable to recover previous state"
                            this.SprintsList <- List.empty<Sprint>
                            this.WorkItemsList <- List.empty<workItem>

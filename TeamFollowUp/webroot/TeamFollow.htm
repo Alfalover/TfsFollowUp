@@ -99,12 +99,12 @@
                             .after("<tr>" +
                                 "<td><img style=\"width:25px; height:25px\" class=\"vcenter img-circle\" src=" + x.user.imageUrl + " /></td>" +
                                 "<td><name class=\"col-md-12\"> " + x.user.displayName + "</name></td>" +
-                                "<td><original class=\"col-md-12\"> " + x.work.Fields[0].Original + "</original></td>" +
-                                "<td><Remaining class=\"col-md-12\"> " + x.work.Fields[0].Remaining + "</Remaining></td>" +
+                                "<td><original class=\"col-md-12\"> " + Number(x.work.Fields[0].Original).toFixed(1) + "</original></td>" +
+                                "<td><Remaining class=\"col-md-12\"> " + Number(x.work.Fields[0].Remaining).toFixed(1) + "</Remaining></td>" +
                                 "<td><a id=\"cplt" + index + "\" href=\"#\" type=\"button\" data-toggle=\"popover\" data-container=\"body\" data-placement=\"right\" type=\"button\" data-html=\"true\"> "
-                                + "<Completed  class=\"col-md-12\"> " + x.work.Fields[0].Completed + "</Completed></a></td>" +
+                                + "<Completed  class=\"col-md-12\"> " + Number(x.work.Fields[0].Completed).toFixed(1) + "</Completed></a></td>" +
                                 "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.Stats.CapacityUntilToday + "</CapacityUntilToday></td>" +
-                                "<td><Debt class=\"col-md-12\"> " + (x.capacity.Stats.CapacityUntilToday - x.work.Fields[0].Completed) + "</Debt></td>" +
+                                "<td><Debt class=\"col-md-12\"> " + Number(x.capacity.Stats.CapacityUntilToday - x.work.Fields[0].Completed).toFixed(1) + "</Debt></td>" +
                                 "<td>" + progressBar(-100, 100, x.debt,-20,5,-10,2.5) + "</td>" +
                                 "<td>" + progressBar(0, 100, x.completeness, 95) + "</td>" +
                                 "<td><Capacity class=\"col-md-12\"> " + x.capacity.Stats.CapacityDay + "</Capacity></td>" +

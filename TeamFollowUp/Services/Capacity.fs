@@ -54,8 +54,8 @@
 
     
         member this.GetTeamMembersWork (sprint: Sprint) =
-               let data = tfs.GetMemberCapacities sessionService.currentSession sprint.id
-               let teamdaysoff = (tfs.GetTeamCapacities sessionService.currentSession sprint.id).daysOff |> List.ofArray
+               let data = upd.GetMemberCapacities sessionService.currentSession sprint.id
+               let teamdaysoff = (upd.GetTeamCapacities sessionService.currentSession sprint.id).daysOff |> List.ofArray
                
                let members = data.value |> List.ofArray
                                         |> List.map(fun x -> {User = x.teamMember
