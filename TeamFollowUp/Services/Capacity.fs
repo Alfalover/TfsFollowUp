@@ -50,12 +50,12 @@
 
 
     
-    type CapacityService(sessionService: SessionService, tfs: TfsService, upd : UpdateService) = 
+    type CapacityService(upd : UpdateService) = 
 
     
         member this.GetTeamMembersWork (sprint: Sprint) =
-               let data = upd.GetMemberCapacities sessionService.currentSession sprint.id
-               let teamdaysoff = (upd.GetTeamCapacities sessionService.currentSession sprint.id).daysOff |> List.ofArray
+               let data = upd.GetMemberCapacities sprint.id
+               let teamdaysoff = (upd.GetTeamCapacities sprint.id).daysOff |> List.ofArray
                
                let members = data.value |> List.ofArray
                                         |> List.map(fun x -> {User = x.teamMember

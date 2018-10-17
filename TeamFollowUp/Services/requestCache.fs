@@ -16,29 +16,35 @@ type requestCache<'item,'key when 'key :comparison>(requester,file,duration:Time
 
     let completeFileName = sprintf "%sReqCache.txt" file
 
-    let cache:cacheHolder<'item,'key>  = 
+    let defaultCache:cacheHolder<'item,'key>  = 
                        try 
                           JsonConvert.DeserializeObject<Map<'key, cacheRegister<'item>>>(File.ReadAllText(completeFileName))
-                       with ex ->  Map.empty
-
-    let store cache = 
-        File.WriteAllText(completeFileName,JsonConvert.SerializeObject(cache))
-        cache
+                       with ex ->  Map.empty 
                         
     let createRequest key =
            { item= requester key 
              timestamp = DateTime.UtcNow}
 
-    let performRequest key = 
-            cache |> Map.add key (createRequest key)
-                  |> store
-                  |> Map.find key
+    member private this.store cache = 
+        this.cache <- cache
+        File.WriteAllText(completeFileName,JsonConvert.SerializeObject(this.cache))
+        this.cache
+
+    member val cache = defaultCache with get,set
+
+    member private this.performRequest key = 
+            this.cache |> Map.add key (createRequest key)
+                       |> this.store
+                       |> Map.find key
+
+    member private this.search key = this.cache |> Map.tryFind(key)
+
+    member private this.timeSearch key = this.cache |> Map.filter(fun x v -> (v.timestamp-DateTime.UtcNow)<duration ) |> Map.tryFind(key)
                   
     member this.request key = 
-                cache |> Map.tryFind(key)    
-                      |> function 
-                         | Some x -> x.item
-                         | None -> (performRequest key).item
+                this.timeSearch key |> function 
+                                       | Some x -> x.item
+                                       | None -> (this.performRequest key).item
                                    
 
    

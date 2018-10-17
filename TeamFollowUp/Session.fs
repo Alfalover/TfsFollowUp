@@ -26,7 +26,7 @@ open System
             let domain = config.Item "credentials:domain"
             new NetworkCredential(user,pass,domain) :> ICredentials  
 
-        member val currentSession : sessionHolder = {credentials = new NetworkCredential("","","") :> ICredentials} with get,set    
+        member val currentSession : sessionHolder = {credentials = (new NetworkCredential("","","") :> ICredentials)} with get,set    
                                                                           
         member this.createSession =   
          
@@ -43,6 +43,6 @@ open System
             printfn "Enter password:"
             let pass = GetPassword() 
 
-            let session = { credentials=GetCredential user pass }       
+            let session = { credentials= GetCredential user pass }       
             this.currentSession <- session
             session
