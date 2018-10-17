@@ -5,7 +5,6 @@
     open System.IO
     open Tfs
     open Microsoft.Extensions.Configuration
-    open System.Collections.Generic
     open RequestCache
     open Session
 
@@ -32,7 +31,6 @@
                                                                        | true  -> TimeSpan.MaxValue 
                                                                        | false -> TimeSpan.FromMinutes(10.0)
 
-        // TODO switch setting in function of UpdateDisabled = true (TimeSpan.MaxValue)
         let memberRequest = fun x -> tfs.GetMemberCapacities session.currentSession x
         let memberRCache = new requestCache<memberCapacityList,string>(memberRequest,"MemberCap",requestCacheModeTimeSpan)
     
