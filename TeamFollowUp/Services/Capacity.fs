@@ -4,6 +4,7 @@
     open Update
     open System
     open Session
+    open TimeSeries
 
     let GetDaysSeq(dStart:DateTime,dEnd) = 
         let days = (int)((dEnd-dStart).TotalDays)
@@ -48,10 +49,34 @@
         Stats: capacityStats
     }
 
+    type MemberStatsSeries = {
+        User: TeamMember
+        RemCap : datapoint list
+    }
+
 
     
     type CapacityService(upd : UpdateService) = 
 
+        member this.GetCapacitySerie (sprint:Sprint) = 
+               let data = upd.GetMemberCapacities sprint.id
+               let teamdaysoff = (upd.GetTeamCapacities sprint.id).daysOff |> List.ofArray
+
+               let totalDays = (sprint.attributes.finishDate.Value-sprint.attributes.startDate.Value).Days + 1;
+               let startDate = sprint.attributes.startDate.Value
+               let endDate   = sprint.attributes.finishDate.Value
+               let days = seq { for i in 0 .. totalDays -> startDate.AddDays(float(i)) }
+
+               let members = data.value |> List.ofArray
+                                        |> List.map(fun x -> {User = x.teamMember
+                                                              RemCap = days |> Seq.map ( fun y ->
+                                                                                            {t = DateTimeOffset(y.AddDays(-1.0))
+                                                                                             y = GetUserCapacity(x,Nullable(startDate),Nullable(endDate),teamdaysoff)
+                                                                                                  - GetUserCapacity(x,Nullable(startDate),Nullable(y.AddDays(-1.0)),teamdaysoff)
+                                                                                            })
+                                                                            |> List.ofSeq
+                                                              })
+               members                                                                
     
         member this.GetTeamMembersWork (sprint: Sprint) =
                let data = upd.GetMemberCapacities sprint.id

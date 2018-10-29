@@ -37,6 +37,9 @@
         let teamRequest = fun x -> tfs.GetTeamCapacities session.currentSession x
         let teamRCache = new requestCache<teamCapacityList,string>(teamRequest,"TeamCap",requestCacheModeTimeSpan)
 
+        let  revRequest = fun x -> tfs.GetWorkItemRevisions session.currentSession x
+        let revRCache = new requestCache<workItemList,int>(revRequest,"RevCap",requestCacheModeTimeSpan)
+
         member val UpdateInProgress = false with get,set
 
         member val updateEvent = new Event<DateTime>()
@@ -44,9 +47,11 @@
         member val SprintsList =  List.empty<Sprint> with get,set
         member val WorkItemsList = List.empty<workItem> with get,set
         member val LastUpdate = DateTime.MinValue with get, set
+        member val ProjectName = tfs.ProjectName
         
         member this.GetMemberCapacities sprintGuid = memberRCache.request sprintGuid  
         member this.GetTeamCapacities sprintGuid  = teamRCache.request sprintGuid
+        member this.GetRevisions id = revRCache.request id
 
         member this.performUpdate session = 
                       
@@ -89,7 +94,6 @@
         member this.periodicUpdate session = async {
         
                // Load from disk last state
-               
                try
                     let sprintsList = JsonConvert.DeserializeObject<Sprint list>(File.ReadAllText("SprintList.txt"))
                     let workItemsList = JsonConvert.DeserializeObject<workItem list>(File.ReadAllText("WorkItemList.txt"))

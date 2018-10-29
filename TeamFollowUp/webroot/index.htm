@@ -33,16 +33,48 @@
 				&& globalValues.bug.stats != undefined 
 				&& globalValues.team.debt != undefined ) {
 		
+				var Effort = parseFloat(globalValues.pbi.Effort) + parseFloat(globalValues.bug.Effort);
+				var Original = parseFloat(globalValues.pbi.stats.Original) + parseFloat(globalValues.bug.stats.Original);
+				var completedWork = parseFloat(globalValues.pbi.stats.Completed) + parseFloat(globalValues.bug.stats.Completed);
 				var remainingWork= parseFloat(globalValues.pbi.stats.Remaining) + parseFloat(globalValues.bug.stats.Remaining);
 				var remainingTime=  parseFloat(globalValues.team.capacity.CapacitySprint) -  parseFloat(globalValues.team.capacity.CapacityUntilToday)
 				
 				var health = 100 * remainingTime/remainingWork;
+				
+				var partRemPbi = 100* parseFloat(globalValues.pbi.stats.Remaining)/remainingWork
+				var partRemBug = 100* parseFloat(globalValues.bug.stats.Remaining)/remainingWork
+				
+				var partComplPbi = 100* parseFloat(globalValues.pbi.stats.Completed)/completedWork
+				var partComplBug = 100* parseFloat(globalValues.bug.stats.Completed)/completedWork
+		
+				var partEffortPbi = 100* parseFloat(globalValues.pbi.Effort)/Effort
+				var partEffortBug = 100* parseFloat(globalValues.bug.Effort)/Effort
+				
+				var partOriginalPbi = 100* parseFloat(globalValues.pbi.stats.Original)/Original
+				var partOriginalBug = 100* parseFloat(globalValues.bug.stats.Original)/Original
+		
+				
 		
 				$("#globalStats tr:last")
                             .after("<tr>" +
                                 "<td>" + remainingWork  + "</td>" +
                                 "<td>" + remainingTime  + "</remaining></td>" +
                                 "</tr>");
+								
+				$("#pbiStats tr:last")
+                      .after("<tr>" +
+                          "<td><original class=\"col-md-12\"> "  + Number(partOriginalPbi).toFixed(1) + "% (" + Number(partEffortPbi).toFixed(1) + "%)</original></td>" +
+                          "<td><remaining class=\"col-md-12\"> " + Number(partRemPbi).toFixed(1) + "%</remaining></td>" +
+                          "<td><completed class=\"col-md-12\"> " + Number(partComplPbi).toFixed(1) + "%</completed></td>" +
+                          "</tr>");
+				
+				$("#bugStats tr:last")
+                      .after("<tr>" +
+                          "<td><original class=\"col-md-12\"> "  + Number(partOriginalBug).toFixed(1) + "% (" + Number(partEffortBug).toFixed(1) + "%)</original></td>" +
+                          "<td><remaining class=\"col-md-12\"> " + Number(partRemBug).toFixed(1) + "%</remaining></td>" +
+                          "<td><completed class=\"col-md-12\"> " + Number(partComplBug).toFixed(1) + "%</completed></td>" +
+                          "</tr>");
+				
 								
 				$("#health").html( progressBar(0, 100,health,80,120,90,110) );
 							
@@ -54,6 +86,7 @@
         $(document).ready(function () {
 
 			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
+			$("#bottomNavbar").load("bottomMenu.htm",function() { updateBoostrap(); });
 		
 		
 			$.ajax({ url: "/api/TeamFollow/Summary", context: document.body })
@@ -74,6 +107,7 @@
                     $("#sprintStart").text((new Date(objectList.sprint.attributes.startDate)).toLocaleDateString())
                     $("#sprintEnd").text((new Date(objectList.sprint.attributes.finishDate)).toLocaleDateString())
                     $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
+                    $("#projectName").text(objectList.project)
 					
 					$("#teamStatsCmp tr:last")
                             .after("<tr>" +
@@ -187,7 +221,7 @@
 <body>
     <div id='ajax_loader' class="overlay">
         <div class="container-fluid" style="height:100%">
-            <h1 class="centered text-center">loading...</h1>
+            <h1 style="margin-top:25%" class="centered text-center">loading...</h1>
         </div>
     </div>
 	
@@ -310,10 +344,8 @@
 		</div>
     </div>
 
-    <div class="footer navbar navbar-inverse navbar-fixed-bottom">
-        <span class="navbar-text pull-right" id="lastUpdateDt"></span>
-        <span class="navbar-text pull-right">Last update:</span>
-    </div>
+    <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom"/>
+
 
 </body>
 

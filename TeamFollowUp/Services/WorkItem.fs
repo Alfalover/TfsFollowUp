@@ -40,6 +40,7 @@
         selSprint: Sprint
         workItems : WorkItemStats[]
         lastUpdate: DateTime
+        project: string
     }
 
     type stateStat= {
@@ -61,15 +62,23 @@
     type WorkItemService(sessionService :SessionService, tfs: TfsService, upd : UpdateService) = 
     
 
-        member this.GetWorkItemStats kind sprint = 
-        
-            let justKind = upd.WorkItemsList 
-                                  |> List.filter(fun x -> x.fields.``System.WorkItemType`` = kind)
-                                  |> List.filter(fun x -> x.children |> List.ofArray
-                                                                     |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path) 
-                                                                     |> List.length > 0)
+        member this.GetWorkItemStats kind sprint =     
+            upd.WorkItemsList 
+                |> List.filter(fun x -> x.fields.``System.WorkItemType`` = kind)
+                |> List.filter(fun x -> x.children |> List.ofArray
+                                                   |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path) 
+                                                   |> List.length > 0)
+                |> this.MapOutput sprint   
+                
+        member this.GetAllStats sprint =     
+            upd.WorkItemsList 
+                |> List.filter(fun x -> x.children |> List.ofArray
+                                                   |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path) 
+                                                   |> List.length > 0)
+                |> this.MapOutput sprint                  
             
-            let sItems = justKind 
+        member this.MapOutput sprint items=     
+            let sItems = items 
                            |> List.map(fun x -> 
                                                  let itemCompleted = x.children |> List.ofArray
                                                                                 |> List.sumBy(fun y -> y.fields.``Microsoft.VSTS.Scheduling.CompletedWork``) 
@@ -130,7 +139,8 @@
                                         
             let result = { selSprint=sprint
                            workItems = (sItems |> Array.ofList)
-                           lastUpdate = upd.LastUpdate}
+                           lastUpdate = upd.LastUpdate
+                           project = upd.ProjectName}
             result
 
         member this.GetGlobalWorkStats kind sprint = 

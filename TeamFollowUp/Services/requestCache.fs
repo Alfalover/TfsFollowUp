@@ -25,17 +25,35 @@ type requestCache<'item,'key when 'key :comparison>(requester,file,duration:Time
            { item= requester key 
              timestamp = DateTime.UtcNow}
 
+    member val storingToken = false with get,set
+
+    member private this.storeToDisk cache  = 
+        let write v = async{
+                            this.storingToken <- true;
+                            do! Async.Sleep(2000);
+                            File.WriteAllText(completeFileName,JsonConvert.SerializeObject(cache));
+                            this.storingToken <- false;
+                            printfn  "%s Stored..." v
+                         }
+        this.storingToken |> function 
+                              | false -> write(completeFileName)
+                                         |> Async.StartImmediateAsTask 
+                                         |> ignore
+                              | true ->0|> ignore
+        cache
+
     member private this.store cache = 
         this.cache <- cache
-        File.WriteAllText(completeFileName,JsonConvert.SerializeObject(this.cache))
-        this.cache
+        this.cache |> this.storeToDisk 
 
     member val cache = defaultCache with get,set
 
     member private this.performRequest key = 
-            this.cache |> Map.add key (createRequest key)
+            let newItem = (createRequest key)
+            this.cache |> Map.add key newItem
                        |> this.store
-                       |> Map.find key
+                       |> ignore
+            newItem
 
     member private this.search key = this.cache |> Map.tryFind(key)
 

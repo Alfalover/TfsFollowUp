@@ -1,0 +1,269 @@
+﻿<html>
+
+<head>
+    <title>Tfs Toni FollowUp tools</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="style.css">
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+	<script src="tools.js"></script>
+
+    <script type="text/javascript">
+        jQuery(function ($) {
+            $(document).ajaxStop(function () {
+                $("#ajax_loader").hide();
+            });
+            $(document).ajaxStart(function () {
+                $("#ajax_loader").show();
+            });
+        });
+    </script>
+
+    <script>
+
+		window.global = {};
+		window.global.projections = {};
+		
+		window.global.projections.calcEndTotal= function(area) {
+		
+			var items = Object.keys(window.global.projections[area]);
+			
+			var total = 0.0;
+			items.forEach(function(x) {
+				var ser = window.global.projections[area][x].serie;
+				var last = ser[ser.length-1].y;
+				total= total+last;
+			});
+			
+			console.log(total);
+		
+		};
+	
+        $(document).ready(function () {
+
+			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
+			$("#bottomNavbar").load("bottomMenu.htm",function() { updateBoostrap(); });
+		
+		
+			function getAreaProjection(dateFrom,dateTo,id,name,idList,area,field) {
+			
+				if (window.global.projections[area] == undefined) 
+					window.global.projections[area] = {}
+				
+				window.global.projections[area][id] = false
+				
+					
+				var urlText2 = "api/WorkFollow/GroupProjection"
+				
+				var params = { globid  : id,
+							   id      : idList,
+							   field   : field,
+							   dateTo  : dateTo,
+							   dateFrom: dateFrom,
+							   globName: name
+							 }							   
+				
+				$.ajax({ type:'POST', url: encodeURI(urlText2), contentType:'application/json', data:JSON.stringify(params), dataType:'json', context: document.body })
+                //$.post(encodeURI(urlText2),params)
+				.done(function (data) {		
+
+					var objectList = data;
+					
+					// really neeeded ? 
+					window.global.projections[area][objectList.pbiId] = objectList
+					var color = window.getRandomColor(window.lineChartColors,objectList.pbiId);
+					var name  = objectList.pbiId;
+					if(objectList.serie[0].y == 0) {
+						name = name + "*";
+					}
+					var dataset = createAreaDataset(name,objectList.serie,color,objectList.name);
+					createLinePlot("burnDown",window.global.names,dataset);
+					
+					// check end and request special items 
+				});
+			};
+			
+			function getLineProjection(dateFrom,dateTo,id,name,idList,area,field,color) {
+			
+				if (window.global.projections[area] == undefined) 
+					window.global.projections[area] = {}
+				
+				//window.global.projections[area][id] = false
+				
+					
+				var urlText2 = "api/WorkFollow/GroupProjection"
+				
+				var params = { globid  : id,
+							   id      : idList,
+							   field   : field,
+							   dateTo  : dateTo,
+							   dateFrom: dateFrom,
+							   globName: name
+							 }							   
+				
+				$.ajax({ type:'POST', url: encodeURI(urlText2), contentType:'application/json', data:JSON.stringify(params), dataType:'json', context: document.body })
+                //$.post(encodeURI(urlText2),params)
+				.done(function (data) {		
+
+					var objectList = data;
+					
+					// really neeeded ? 
+					//window.global.projections[area][objectList.pbiId] = objectList
+					var dataset = createLineDataset(objectList.pbiId,objectList.serie,color,objectList.name);
+					createLinePlot("burnDown",window.global.names,dataset);
+				});
+			};
+			
+			function getCapacityProjection(area) {
+			
+				if (window.global.projections[area] == undefined) 
+					window.global.projections[area] = {}
+					
+				var urlText2 = "api/TeamFollow/CapacitySerie"
+				
+				$.ajax({ type:'GET', url: encodeURI(urlText2), context: document.body })
+
+				.done(function (data) {		
+
+					var objectList = JSON.parse(data);
+					
+					var dataset = createLineDataset("capacity",objectList,window.chartColors.limeGreen,"Sprint Capacity");
+					createLinePlot("burnDown",window.global.names,dataset);
+				});
+			};
+ 
+			$.ajax({ url: "/api/WorkFollow/GetAll", context: document.body })
+
+
+                .done(function (data) {
+
+
+                    var objectList = JSON.parse(data);
+
+                    var sprintName = objectList.selSprint.name;
+					var startDate = (new Date(objectList.selSprint.attributes.startDate));
+					var endSprintDate   = (new Date(objectList.selSprint.attributes.finishDate));
+					var endDate = moment(new Date(),dateFormat);
+					endDate.startOf('day');
+					endDate.add(1,'d');
+
+                    $("#sprintId").text(sprintName)
+                    $("#sprintStart").text(startDate.toLocaleDateString())
+                    $("#sprintEnd").text(endSprintDate.toLocaleDateString())
+                    $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
+					$("#projectName").text(objectList.project)
+	
+					window.global.names = [];
+					
+					var dateFormat = 'MMMM DD YYYY';
+					var date = moment(new Date(startDate), dateFormat);
+					var labels = [date];
+					while (date.isBefore(endSprintDate)) {
+						   date = date.clone().add(1, 'd');
+						   if (date.isoWeekday() <= 5) {
+							labels.push(date);
+						   }
+					}
+					
+					window.global.names  = labels;
+					
+
+					var complete = [];
+					// Get all item Ids to show projections
+					objectList.workItems.forEach(function (x) {
+
+						var childIds = [];
+
+							x.item.children.forEach(function(y) {
+								childIds.push(y.id)
+								complete.push(y.id)
+							});
+						
+						
+							getAreaProjection(startDate.toISOString(),
+										  endDate.toISOString(),
+										  x.item.id,
+										  x.item.fields["System.Title"],
+										  childIds,
+										  "RemWork",
+										  "Microsoft.VSTS.Scheduling.RemainingWork")		
+	
+						
+	
+					});
+					
+					getLineProjection(startDate.toISOString(),
+										  endDate.toISOString(),
+										  
+										  "completeBurndown",
+										  "Complete Burndown",
+										  complete,
+										  "RemWork",
+										  "Microsoft.VSTS.Scheduling.RemainingWork",
+										  window.chartColors.purple);
+										 
+										 
+					getCapacityProjection("RemWork");
+					
+					window.global.items = objectList.workItems;
+					
+                    updateBoostrap();
+
+                });
+        });
+		
+		
+		$(window).on("load", function () {
+
+            console.log("window loaded");
+			
+		});
+
+    </script>
+
+
+</head>
+
+<body>
+    <div id='ajax_loader' class="overlay">
+        <div class="container-fluid" style="height:100%">
+            <h1  style="margin-top:25%" class="centered text-center">loading...</h1>
+        </div>
+    </div>
+	
+	<div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
+
+	
+    <div class="container">
+       
+	    <div class="row" >
+			
+			<div class="col-lg-6">
+				<h2 class="marginleft" id="sprintId">Sprint xxx</h2>
+			</div>
+			<div class="col-lg-6 vcenter">
+				<sprintDesc>
+					<h4 class="pull-right marginright" id="sprintEnd"></h4>
+					<h4 class="pull-right marginright"> To: </h4>
+					<h4 class="pull-right marginright" id="sprintStart"></h4>
+					<h4 class="pull-right marginright"> From: </h4>
+				</sprintDesc>
+			</div>
+		</div>
+		<div class="row">
+				<div class="col-lg-12">
+						<canvas id="burnDown"/>
+				</div>
+		</div>
+		
+    <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom"/>
+
+
+</body>
+
+</html>
+

@@ -120,6 +120,7 @@ open Microsoft.Extensions.Configuration
         value : workItem[]
     }
 
+
     type TfsService(config : IConfiguration) = 
     
         let server = (config.Item "tfs:Url")+"/DefaultCollection/"
@@ -131,6 +132,9 @@ open Microsoft.Extensions.Configuration
         let WorkItemsUri queryId = System.Uri (server+projectName+"/_apis/wit/wiql/"+ queryId + "?api-version=4.1")
         let WorkItemUri (ids,fields) = System.Uri (server+projectName+"/_apis/wit/workitems?ids=" + ids + "&fields=" + fields + "&api-version=4.1")
         let WorkItemUri2 (ids) = System.Uri (server+projectName+"/_apis/wit/workitems?ids=" + ids + "&api-version=4.1")
+
+        // Burnout detailed charts
+        let WorkItemRevisionUri id = System.Uri (server+ sprintf "/_apis/wit/workItems/%d/revisions?api-version=4.1" id)
 
         let workItemHtmlLink (id) =  server + projectName + "/_workitems?id="+ id + "&_a=edit"
 
@@ -151,6 +155,8 @@ open Microsoft.Extensions.Configuration
             let data = reader.ReadToEnd()
             printfn "RES:%d bytes" data.Length
             JsonConvert.DeserializeObject<'T>(data)
+        
+        member val ProjectName =  config.Item "tfs:ProjectName"
 
         member this.GetSprintsList session = 
             this.GetDataObject<SprintList>(session,SprintsUri)
@@ -160,6 +166,9 @@ open Microsoft.Extensions.Configuration
 
         member this.GetTeamCapacities  session sprintGuid  = 
             this.GetDataObject<teamCapacityList> (session,TeamCapacitiesUri sprintGuid)
+
+        member this.GetWorkItemRevisions  session id  = 
+            this.GetDataObject<workItemList> (session,WorkItemRevisionUri id)
         
         member this.GetWorkItemsQuery session queryId = 
             this.GetDataObject<workItemsQueryList> (session, WorkItemsUri queryId)

@@ -6,6 +6,7 @@ open System.Security
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Diagnostics
 open System.Threading
 open Tfs
 open Update
@@ -14,6 +15,7 @@ open Capacity
 open WorkItem
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Configuration.Json
+open Microsoft.AspNetCore.Server.Kestrel.Core
 
 
 type Startup(env: IHostingEnvironment) =
@@ -26,10 +28,15 @@ type Startup(env: IHostingEnvironment) =
                 .AddSingleton<UpdateService,UpdateService>()
                 .AddTransient<CapacityService,CapacityService>()
                 .AddTransient<WorkItemService,WorkItemService>()
-                .AddMvcCore() |> ignore
+                .AddLogging()
+                .AddMvcCore()
+                .AddJsonFormatters()
+                |> ignore
 
      member this.Configure (app: IApplicationBuilder) =
 
+        
+        app.UseDeveloperExceptionPage();
         app.UseMvc().UseFileServer(false) |> ignore
 
 [<EntryPoint>]
@@ -43,14 +50,15 @@ let main argv  =
 
     let configure =
         new Action<IConfigurationBuilder> (
-            fun x -> x.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(),"appsettings.json"),false,true)  |> ignore)
+            fun x -> x.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(),"appsettings.json"),false,true)  |> ignore
+                     )
 
     let host = WebHostBuilder()
                     .UseUrls(hostAddress)
-                    .ConfigureAppConfiguration(configure)
                     .UseWebRoot(contentRoot)
                     .UseContentRoot(contentRoot)
                     .UseKestrel()
+                    .ConfigureAppConfiguration(configure)
                     .UseStartup<Startup>().Build()
 
 

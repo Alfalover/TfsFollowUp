@@ -74,6 +74,7 @@
         $(document).ready(function () {
 
 			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
+			$("#bottomNavbar").load("bottomMenu.htm",function() { updateBoostrap(); });
 
             $.ajax({ url: "/api/TeamFollow", context: document.body })
 
@@ -89,6 +90,7 @@
                     $("#sprintStart").text((new Date(objectList.sprint.attributes.startDate)).toLocaleDateString())
                     $("#sprintEnd").text((new Date(objectList.sprint.attributes.finishDate)).toLocaleDateString())
                     $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
+					$("#projectName").text(objectList.project)
 
                     var index = 0;
                     objectList.members.forEach(function (x) {
@@ -143,7 +145,7 @@
 <body>
     <div id='ajax_loader' class="overlay">
         <div class="container-fluid" style="height:100%">
-            <h1 class="centered text-center">loading...</h1>
+            <h1 style="margin-top:25%" class="centered text-center">loading...</h1>
         </div>
     </div>
 	
@@ -180,13 +182,9 @@
             </div>
     </div>
 
-    <div class="footer navbar navbar-inverse navbar-fixed-bottom">
-        <span class="navbar-text pull-right" id="lastUpdateDt"></span>
-        <span class="navbar-text pull-right">Last update:</span>
-    </div>
-
-    <div class="hide" id="popover-contents" />
-
+   
+   <div class="hide" id="popover-contents" />
+   <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom"/>
 
 </body>
 

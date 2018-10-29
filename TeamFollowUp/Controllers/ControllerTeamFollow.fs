@@ -24,6 +24,7 @@ type CompletedWork = {
     sprint : Sprint
     members : MemberFollowupStats[]
     lastUpdate : DateTime
+    project: string
 }
 
 type TeamSummary = {
@@ -34,6 +35,7 @@ type TeamSummary = {
     debt: double
     completeness : double
     lastUpdate : DateTime
+    project: string
 }
  
 
@@ -58,6 +60,19 @@ type TeamFollowController(workitems : WorkItemService, capacities : CapacityServ
                                                   | 0.0 -> 100.0
                                                   | _   -> 100.0 * (completed / untilToday)
 
+    [<Route("CapacitySerie")>]
+    member this.CapacitySerie() = 
+                
+        update.SprintsList  |> List.tryFind(fun x -> x.attributes.timeFrame = TimeFrame.current)
+                            |> function 
+                                | Some current -> capacities.GetCapacitySerie current
+                                                  |> List.map (fun x -> x.RemCap)
+                                                  |> TimeSeries.sumSeries (DateTimeOffset(current.attributes.startDate.Value))
+                                                                          (DateTimeOffset(current.attributes.finishDate.Value.AddDays(1.0)))
+                                                                          (TimeSpan.FromHours(24.0))
+                                                  |> JsonConvert.SerializeObject
+                                | None -> ""
+
     [<Route("Summary")>]
     member this.Summary() = 
                 
@@ -80,6 +95,7 @@ type TeamFollowController(workitems : WorkItemService, capacities : CapacityServ
                                                                completeness = x.members |> List.ofArray
                                                                                         |> List.averageBy(fun y -> y.completeness)
                                                                lastUpdate = x.lastUpdate
+                                                               project = x.project
                                                               }
 
                                                   |> JsonConvert.SerializeObject
@@ -99,7 +115,8 @@ type TeamFollowController(workitems : WorkItemService, capacities : CapacityServ
                                        })
         { sprint = current.Head; 
           members = list |> Array.ofSeq
-          lastUpdate = update.LastUpdate}
+          lastUpdate = update.LastUpdate
+          project = update.ProjectName}
 
 
     [<HttpGet>]

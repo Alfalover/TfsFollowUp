@@ -35,15 +35,6 @@
                         var iterdev = x.IterStatsCmp.Deviation;
 						var itemprgs = x.ItemStatsCmp.Progress;
 						var itemdev  = x.ItemStatsCmp.Deviation;
-					
-						//if (x.IterStats.Completed > 0)
-						//	iterprgs = 100.0 * x.IterStats.Completed/(x.IterStats.Remaining+x.IterStats.Completed);
-						//if (x.IterStats.Original > 0)
-						//	iterdev  = (100.0 * (x.IterStats.Remaining+x.IterStats.Completed)/x.IterStats.Original)-100; 
-						//if (x.ItemStats.Completed > 0)
-						//	itemprgs = 100.0 * x.ItemStats.Completed/(x.ItemStats.Remaining+x.ItemStats.Completed);
-						//if (x.Effort > 0)
-						//	itemdev  = (100.0 *(x.ItemStats.Remaining+x.ItemStats.Completed)/x.Effort)-100;
                         
                         $("#"+itemtable+" tr:last")
                             .after("<tr>" +
@@ -79,11 +70,11 @@
 					});
 		 }
 		 
-		 
         
         $(document).ready(function () {
 
 			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
+			$("#bottomNavbar").load("bottomMenu.htm",function() { updateBoostrap(); });
 		
             $.ajax({ url: "/api/WorkFollow?wtype=Product%20Backlog%20Item", context: document.body })
 
@@ -99,6 +90,7 @@
                     $("#sprintStart").text((new Date(objectList.selSprint.attributes.startDate)).toLocaleDateString())
                     $("#sprintEnd").text((new Date(objectList.selSprint.attributes.finishDate)).toLocaleDateString())
                     $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
+					$("#projectName").text(objectList.project)
 
 					fillTable("resultsPbiIter","resultsPbiItem",objectList);
                     updateBoostrap();
@@ -118,8 +110,19 @@
 
                 });
 
+			$('#wiTabs a').click(function(e) {
+				e.preventDefault();
+				$(this).tab('show');
+				
+				// store the currently selected tab in the hash value
+				$("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
+				 var id = $(e.target).attr("href").substr(1);
+				 window.location.hash = id;
+				});
+			});
 
-
+			var hash = window.location.hash;
+			$('#wiTabs a[href="' + hash + '"]').tab('show');
             console.log("document loaded");
 
         });
@@ -140,7 +143,7 @@
 <body>
     <div id='ajax_loader' class="overlay">
         <div class="container-fluid" style="height:100%">
-            <h1 class="centered text-center">loading...</h1>
+            <h1 style="margin-top:25%" class="centered text-center">loading...</h1>
         </div>
     </div>
 	
@@ -156,7 +159,7 @@
 				<span class="pull-right marginright"> From: </span>
             </sprintDesc>
 
-		<ul class="nav nav-tabs">
+		<ul class="nav nav-tabs" id="wiTabs">
 		  <li class="active"><a data-toggle="tab" href="#pbiIter">Pbi Iteration</a></li>
 		  <li><a data-toggle="tab" href="#pbiItem">Pbi</a></li>
 		  <li><a data-toggle="tab" href="#bugIter">Bug Iteration</a></li>
@@ -252,10 +255,7 @@
 	</div>
   
 
-    <div class="footer navbar navbar-inverse navbar-fixed-bottom">
-        <span class="navbar-text pull-right" id="lastUpdateDt"></span>
-        <span class="navbar-text pull-right">Last update:</span>
-    </div>
+    <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom"/>
 
     <div class="hide" id="popover-contents" />
 

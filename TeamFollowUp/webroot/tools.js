@@ -1,4 +1,10 @@
 ﻿
+		window.getRandomColor = function(list,number) {		
+			var length = Object.keys(list).length;
+			var index  = number % length;
+			return list[Object.keys(list)[index]]
+			
+		}
 		
 		window.chartColors = {
 			red: 'rgb(255, 99, 132)',
@@ -10,8 +16,23 @@
 			blue: 'rgb(54, 162, 235)',
 			purple: 'rgb(153, 102, 255)',
 			grey: 'rgb(201, 203, 207)',
-			darkGrey: 'rgb(101, 103, 107)'
+			darkGrey: 'rgb(101, 103, 107)',
+			limeGreen: 'rgb(0, 255, 0)'
 		};
+		
+		window.lineChartColors = {
+			red: 'rgba(255, 99, 132,0.2)',
+			pink: 'rgba(255, 23, 232,0.2)',
+			orange: 'rgba(255, 159, 64,0.2)',
+			yellow: 'rgba(255, 205, 86,0.2)',
+			darkYellow: 'rgba(155, 105, 86,0.2)',
+			green: 'rgba(75, 192, 75,0.2)',
+			blue: 'rgba(54, 162, 235,0.2)',
+			purple: 'rgba(153, 102, 255,0.2)',
+			grey: 'rgba(201, 203, 207,0.2)',
+			darkGrey: 'rgba(101, 103, 107,0.2)'
+		};
+
 
 		window.charts = {}
 		window.chartsConfig = {}
@@ -68,6 +89,136 @@
 			return result;
 		}
 		
+		function createLineDataset(datasetName,values,serieColor,desc) {
+			
+			return {			data: values,
+								label: datasetName,
+								backgroundColor: serieColor,
+								borderColor: serieColor,
+								desc: desc,
+								//steppedLine: true,
+								lineTension: 0,
+								type: 'line',
+								yAxisID: 'y2',
+								// pointRadius: 0,
+								fill: false
+								// lineTension: 0,
+								// borderWidth: 2
+								};
+			
+		}
+		
+		function createAreaDataset(datasetName,values,serieColor,desc) {
+			
+			return {
+								data: values,
+								label: datasetName,
+								backgroundColor: serieColor,
+								borderColor: serieColor,
+								desc: desc,
+								//steppedLine: true,
+								lineTension: 0,
+								type: 'line',
+								yAxisID: 'y1'
+								// pointRadius: 0,
+								// fill: false,
+								// lineTension: 0,
+								// borderWidth: 2
+								};
+			
+		}
+		
+		function createLinePlot(name, names,dataset) {
+			
+			
+			// Create new
+			if(window.charts[name] == undefined) {
+			
+					var domObject= $("#"+name)[0];
+			
+					window.chartsConfig[name] = {
+						type: 'line',
+						data: {
+							datasets: [dataset],
+							labels: names
+						},
+						options: {
+							responsive: true,
+							scales: {
+										xAxes: [{
+											type: 'time',
+											distribution: 'series',
+											ticks: {
+												source: 'labels'
+											}
+										}],
+										yAxes: [
+												{
+													id : "y2",
+													stacked: false,
+													scaleLabel: {
+														display: false,
+														labelString: 'Remaining'
+													},
+													ticks : {
+																max : 300,    
+																min : 0
+															}
+
+												},
+												{
+													id : "y1",
+													stacked: true,
+													position: 'right',
+													scaleLabel: {
+														display: true,
+														labelString: 'Remaining'
+													},
+													ticks : {
+																max : 300,    
+																min : 0
+															}
+												}]
+									},
+							legend: { 
+								position:'bottom',
+								labels : {
+									boxWidth: 20,
+									padding: 5									
+								}
+							},
+							tooltips: {
+								callbacks: {
+									label: function(tooltipItem, data)
+									{
+										var dataset = data.datasets[tooltipItem.datasetIndex].label + ' ';
+										var name    = data.datasets[tooltipItem.datasetIndex].desc;
+										var value   = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y;
+										
+										if (dataset) {
+											dataset += '-'+name+': ';
+										}
+										
+										
+										dataset += value;
+										return dataset;
+									}
+								}
+							}
+						}
+					};
+					
+					window.charts[name] = new Chart(domObject, window.chartsConfig[name]);		
+			} else {
+				// Append dataset 		
+				window.chartsConfig[name].data.datasets.push(dataset);
+				window.chartsConfig[name].data.datasets.reverse();
+				window.charts[name].update();
+				
+			}
+					
+		}
+		
 		function createPieChart(name,datasetName, values, names, colors) {
 			
 			
@@ -122,7 +273,8 @@
 				
 				var dataset = { data:values,
 								backgroundColor: colors,
-								label: datasetName}
+								label: datasetName
+								}
 			
 				window.chartsConfig[name].data.datasets.push(dataset);
 				window.charts[name].update();
