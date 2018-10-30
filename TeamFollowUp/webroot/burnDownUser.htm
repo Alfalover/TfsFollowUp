@@ -169,57 +169,36 @@
 					window.global.names  = labels;
 					
 				
-					var unstartedWorkStates = ["Committed","New","Groomable","Groomed"];
-					var unstartedWork = [];
+					var byUser={};					
 					var complete = [];
 					// Get all item Ids to show projections
 					objectList.workItems.forEach(function (x) {
-
-						var childIds = [];
-
-						var mushroom = new Date(x.item.fields["System.CreatedDate"]) > startDate;
-						var started = unstartedWorkStates.indexOf(x.item.fields["System.State"]) == -1; 
 							
 						x.item.children.forEach(function(y) {
 							   
-							   
-							   if(started || mushroom){
-									childIds.push(y.id)
-								} else {
-									unstartedWork.push(y.id);
-								}
+								var r = byUser[x.item.fields["System.AssignedTo"]]
+								
+								if (r == undefined) r = [];
+								
+								r.push(y.id);
 								complete.push(y.id)
+											
+								byUser[x.item.fields["System.AssignedTo"]] = r;
 						});
-						
-						
-						if(childIds.length > 0) {
-							
-							var name = x.item.id;
-							if(mushroom) 
-								name = name +"*";
-							name = name + " " + x.item.fields["System.Title"].substring(0,30) + "...";
+					});
+					
+					Object.keys(byUser).forEach(function (x) {
+					
+							var name = x;							
 							getAreaProjection(startDate.toISOString(),
 										  endDate.toISOString(),
 										  name,
-										  x.item.fields["System.Title"],
-										  childIds,
+										  name,
+										  byUser[x],
 										  "RemWork",
-										  "Microsoft.VSTS.Scheduling.RemainingWork")		
-						}
-
+										  "Microsoft.VSTS.Scheduling.RemainingWork")						
 					});
 					
-					if(unstartedWork.length > 0) {
-					
-						getAreaProjection(startDate.toISOString(),
-										  endDate.toISOString(),
-										  "Not Started Work",
-										  "Not Started work",
-										   unstartedWork,
-										  "RemWork",
-										  "Microsoft.VSTS.Scheduling.RemainingWork")	
-					
-					}
 					
 					getLineProjection(startDate.toISOString(),
 										  endDate.toISOString(),

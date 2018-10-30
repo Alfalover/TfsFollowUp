@@ -181,7 +181,7 @@
 												}]
 									},
 							legend: { 
-								position:'bottom',
+								position:'right',
 								labels : {
 									boxWidth: 20,
 									padding: 5									
@@ -212,7 +212,16 @@
 			} else {
 				// Append dataset 		
 				window.chartsConfig[name].data.datasets.push(dataset);
-				window.chartsConfig[name].data.datasets.reverse();
+				
+				function SortByName(a, b){
+						var aName = a.label.toLowerCase();
+						var bName = b.label.toLowerCase(); 
+						return ((aName < bName) ? 1 : ((aName > bName) ? -1 : 0));
+				}
+				
+				//window.chartsConfig[name].data.datasets.reverse();
+				
+				window.chartsConfig[name].data.datasets.sort(SortByName);
 				window.charts[name].update();
 				
 			}

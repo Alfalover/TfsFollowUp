@@ -94,10 +94,11 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
 
 
         let serie = series 
-                         |> sumSeries request.dateFrom request.dateTo (TimeSpan.FromHours(6.0))
+                         |> sumSeries request.dateFrom request.dateTo (TimeSpan.FromHours(24.0))
                          |> cutStartSerie request.dateFrom
                          |> extendEndSerie request.dateTo
                          |> cutEndSerie request.dateTo
+                         |> removeWeekends
 
         let debug = {request= request
                      sourceSeries= series

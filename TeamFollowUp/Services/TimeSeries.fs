@@ -77,7 +77,10 @@ let cutEndSerie dateTo serie =
         |> List.map(fun (x,v) -> {y = (v |> List.head).y 
                                   t = (v |> List.head).t })
            
-
+let removeWeekends serie = 
+       serie |> List.filter(fun x -> [DayOfWeek.Saturday;DayOfWeek.Sunday]
+                                     |> List.contains(x.t.DayOfWeek) 
+                                     |> not)
            
 
 

@@ -3,6 +3,7 @@
 open System
 open System.IO
 open Newtonsoft.Json
+open System
 
 type cacheRegister<'a> = {
         item : 'a
@@ -13,6 +14,10 @@ type cacheHolder<'i,'k when 'k :comparison> = Map<'k, cacheRegister<'i>>
 
 
 type requestCache<'item,'key when 'key :comparison>(requester,file,duration:TimeSpan) =
+
+    let listCount text (list:'a list) = 
+        printfn "%s count %d" text list.Length
+        list
 
     let completeFileName = sprintf "%sReqCache.txt" file
 
@@ -57,11 +62,23 @@ type requestCache<'item,'key when 'key :comparison>(requester,file,duration:Time
 
     member private this.search key = this.cache |> Map.tryFind(key)
 
-    member private this.timeSearch key = this.cache |> Map.filter(fun x v -> (v.timestamp-DateTime.UtcNow)<duration ) |> Map.tryFind(key)
-                  
+
+
+    member private this.timeSearch key = this.cache 
+                                          |> Map.toList
+//                                          |> listCount "prev"
+                                          |> List.filter(fun (x,v) -> (DateTime.UtcNow-v.timestamp)<duration )
+//                                          |> listCount "timefilter"
+                                          |> List.filter(fun (x,v) -> x = key)   
+//                                          |> listCount "search"
+                                          |> List.map(fun(x,v) -> v)
+                                          |> List.tryItem 0
     member this.request key = 
                 this.timeSearch key |> function 
-                                       | Some x -> x.item
+                                       | Some x -> 
+                                                    //(printfn "%s At Cache.. %s -- %s ->%s d:%s" file (x.timestamp.ToString()) (((DateTime.UtcNow-x.timestamp).TotalMinutes).ToString())
+                                                    //    (((DateTime.UtcNow-x.timestamp)<duration).ToString()) (duration.TotalMinutes.ToString())) ;
+                                                    x.item
                                        | None -> (this.performRequest key).item
                                    
 
