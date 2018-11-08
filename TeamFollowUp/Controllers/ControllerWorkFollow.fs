@@ -86,7 +86,7 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
     [<HttpPost>]
     [<Route("GroupProjection")>]
     member this.GroupProjection ([<FromBody>]request:GroupRequest) =
-                                
+                               
         let data = request.id |> List.map(fun x -> update.GetRevisions x)
         
         let series = data |> List.map(fun x -> x.value |> List.ofArray 
@@ -99,6 +99,7 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
                          |> extendEndSerie request.dateTo
                          |> cutEndSerie request.dateTo
                          |> removeWeekends
+                         |> removeNights
 
         let debug = {request= request
                      sourceSeries= series
@@ -121,6 +122,15 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
         |> JsonConvert.SerializeObject
 
 
+    
+    [<Route("GetId")>]
+    member this.GetId(id:string) = 
+        update.SprintsList  
+        |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
+        |> List.head
+        |>  workitems.GetWorkItemStatsById id
+        |> JsonConvert.SerializeObject
+
     [<HttpGet>]
     member this.Get(wtype:string) = 
         update.SprintsList  
@@ -128,6 +138,7 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
         |> List.head
         |>  workitems.GetWorkItemStats wtype
         |> JsonConvert.SerializeObject
+
 
     [<Route("GetAll")>]
     member this.GetAll() = 

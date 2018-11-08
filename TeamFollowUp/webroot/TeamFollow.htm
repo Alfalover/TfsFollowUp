@@ -30,8 +30,8 @@
             member.work.Fields[0].Tasks.forEach(function (x) {
 
                 rows += '<tr><td>' + x.id + '</td>' +
-                    '    <td><a target="_blank" rel="noopener noreferrer" href="' + x.Html + '" data-toggle="tooltip" title="' + x.fields["System.Title"] + '">' + x.fields["System.Title"] + '</a></td>' +
-                    '    <td><a target="_blank" rel="noopener noreferrer" href="' + x.parentHtml + '" data-toggle="tooltip" title="' + x.parentName + '">' + x.parentName + '</a></td>' +
+                    '    <td><a target="_blank" rel="noopener noreferrer" href="' + encodeURI(x.Html) + '" data-toggle="tooltip" title="' + x.fields["System.Title"] + '">' + x.fields["System.Title"] + '</a></td>' +
+                    '    <td><a target="_blank" rel="noopener noreferrer" href="' + encodeURI(x.parentHtml) + '" data-toggle="tooltip" title="' + x.parentName + '">' + x.parentName + '</a></td>' +
                     '    <td>' + x.fields["Microsoft.VSTS.Scheduling.OriginalEstimate"] + '</td>' +
                     '    <td>' + x.fields["Microsoft.VSTS.Scheduling.RemainingWork"] + '</td>' +
                     '    <td>' + x.fields["Microsoft.VSTS.Scheduling.CompletedWork"] + '</td>' +

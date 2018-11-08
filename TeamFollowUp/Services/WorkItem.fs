@@ -61,6 +61,13 @@
 
     type WorkItemService(sessionService :SessionService, tfs: TfsService, upd : UpdateService) = 
     
+        member this.GetWorkItemStatsById id sprint =     
+            upd.WorkItemsList 
+                |> List.filter(fun x -> x.id = id)
+                |> List.filter(fun x -> x.children |> List.ofArray
+                                                   |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path) 
+                                                   |> List.length > 0)
+                |> this.MapOutput sprint   
 
         member this.GetWorkItemStats kind sprint =     
             upd.WorkItemsList 
@@ -154,19 +161,31 @@
                                                         count =y.Length
                                                       })
                                     
-
-            { kind = kind
-              Effort = items |> List.sumBy(fun x -> x.Effort)
-              Stats= { Completed = items |> List.sumBy(fun x -> x.IterStats.Completed)
-                       Remaining = items |> List.sumBy(fun x -> x.IterStats.Remaining)
-                       Original = items |> List.sumBy(fun x -> x.IterStats.Original)
-                     }
-              StatsCmp = {Progress = items |> List.averageBy(fun x -> x.IterStatsCmp.Progress)
-                          Deviation = items |> List.averageBy(fun x -> x.IterStatsCmp.Deviation)
-                         }
-              StateCount = stateCount |> Array.ofList
-              Count = items.Length
-            }
+            items |> function 
+            | [] -> { kind = kind
+                      Effort = 0.0
+                      Stats= { Completed = 0.0
+                               Remaining = 0.0
+                               Original = 0.0
+                             }
+                      StatsCmp = {Progress = 0.0
+                                  Deviation = 0.0
+                                 }
+                      StateCount = [||]
+                      Count = 0
+                    } 
+            | a -> { kind = kind
+                     Effort = a |> List.sumBy(fun x -> x.Effort)
+                     Stats= { Completed = a |> List.sumBy(fun x -> x.IterStats.Completed)
+                              Remaining = a |> List.sumBy(fun x -> x.IterStats.Remaining)
+                              Original = a |> List.sumBy(fun x -> x.IterStats.Original)
+                            }
+                     StatsCmp = {Progress = a |> List.averageBy(fun x -> x.IterStatsCmp.Progress)
+                                 Deviation = a |> List.averageBy(fun x -> x.IterStatsCmp.Deviation)
+                                }
+                     StateCount = stateCount |> Array.ofList
+                     Count = a.Length
+                    }
 
         // Unused to remove...
         member this.GetTeamWorkStats sprint = 

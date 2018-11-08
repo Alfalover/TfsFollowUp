@@ -71,6 +71,7 @@ type TeamFollowController(workitems : WorkItemService, capacities : CapacityServ
                                                                           (DateTimeOffset(current.attributes.finishDate.Value.AddDays(1.0)))
                                                                           (TimeSpan.FromHours(24.0))
                                                   |> TimeSeries.removeWeekends
+                                                  |> TimeSeries.removeNights
                                                   |> JsonConvert.SerializeObject
                                 | None -> ""
 

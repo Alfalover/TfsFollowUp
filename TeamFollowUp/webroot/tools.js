@@ -37,6 +37,12 @@
 		window.charts = {}
 		window.chartsConfig = {}
 		
+		function getSearchParams(k){
+			var p={};
+			location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi,function(s,k,v){p[k]=v})
+			return k?p[k]:p;
+		}
+		
 		function getStateLabels() {
 			
 			return [ "New",
@@ -108,7 +114,7 @@
 			
 		}
 		
-		function createAreaDataset(datasetName,values,serieColor,desc) {
+		function createAreaDataset(datasetName,values,serieColor,desc,html,nameUrl) {
 			
 			return {
 								data: values,
@@ -116,6 +122,8 @@
 								backgroundColor: serieColor,
 								borderColor: serieColor,
 								desc: desc,
+								url: html,
+								nameUrl: nameUrl,
 								//steppedLine: true,
 								lineTension: 0,
 								type: 'line',
@@ -128,8 +136,45 @@
 			
 		}
 		
-		function createLinePlot(name, names,dataset) {
+		function hideOne(ci,index,item) {
+			var meta = ci.getDatasetMeta(index);
+			meta.hidden = meta.hidden === null? !ci.data.datasets[index].hidden : null;
 			
+			if(meta.hidden) {
+				$("#"+item).html('<box class="glyphicon glyphicon-eye-close"></box>');
+			} else {
+				$("#"+item).html("");
+			}
+			
+			ci.update();			
+		}
+		
+		function hide(ci,index,item){
+			
+			if(index == undefined) {
+			  var total = ci.data.datasets.length;
+			  for (i = 0; i<total;i++)
+			  {
+				  hideOne(ci,i,"cl"+i);
+			  }
+				
+				
+			} else {
+				hideOne(ci,index,item);
+			}
+		}
+		
+		function createLinePlot(name,names,dataset,legendDom,max) {
+			
+			showStdLegend = true;
+			if(legendDom != undefined) {
+				showStdLegend = false;
+			}
+			
+			var tickMax = 300;
+			if(max != undefined){
+				tickMax = max;
+			}
 			
 			// Create new
 			if(window.charts[name] == undefined) {
@@ -144,6 +189,32 @@
 						},
 						options: {
 							responsive: true,
+							legendCallback: function(chart) {
+								
+								var text = [];
+								text.push('<table class="cLegend">');
+								text.push('<tr><td><box class="glyphicon glyphicon-eye-open"  OnClick="hide(window.charts[\''+name+'\'],undefined,this)" />');									
+								text.push('</td><td><span>');									
+								text.push('</span></td><td/></tr>')
+								for (var i = 0; i < chart.data.datasets.length; i++) {
+									text.push('<tr><td><box id="cl'+i+'" style="background-color:' + chart.data.datasets[i].backgroundColor 
+											+ '" OnClick="hide(window.charts[\''+name+'\'],'+i+',this.id)" />');									
+									text.push('</td><td><span>');			
+									if(chart.data.datasets[i].nameUrl == undefined){									
+										text.push(chart.data.datasets[i].label);
+									}else {
+										text.push('<a href="'+chart.data.datasets[i].nameUrl+'">'+chart.data.datasets[i].label)+'</a>';
+									}
+									text.push('</span></td>');
+									if(chart.data.datasets[i].url != undefined){
+										text.push('<td><a target="_blank" rel="noopener noreferrer" href='+encodeURI(chart.data.datasets[i].url)+' class="glyphicon glyphicon-link" /></td>')
+									}
+									text.push('</tr>');
+								}
+								text.push('</table>');
+								return text.join("");
+								
+							},
 							scales: {
 										xAxes: [{
 											type: 'time',
@@ -161,7 +232,7 @@
 														labelString: 'Remaining'
 													},
 													ticks : {
-																max : 300,    
+																max : tickMax,    
 																min : 0
 															}
 
@@ -175,12 +246,13 @@
 														labelString: 'Remaining'
 													},
 													ticks : {
-																max : 300,    
+																max : tickMax,    
 																min : 0
 															}
 												}]
 									},
 							legend: { 
+								display: showStdLegend,
 								position:'right',
 								labels : {
 									boxWidth: 20,
@@ -193,7 +265,13 @@
 									{
 										var dataset = data.datasets[tooltipItem.datasetIndex].label + ' ';
 										var name    = data.datasets[tooltipItem.datasetIndex].desc;
+										
+										var firstValue   = data.datasets[tooltipItem.datasetIndex].data[0].y;
 										var value   = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y;
+										
+										if(tooltipItem.index > 0) {
+											var prevValue  = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index-1].y;
+										}
 										
 										if (dataset) {
 											dataset += '-'+name+': ';
@@ -201,6 +279,13 @@
 										
 										
 										dataset += value;
+										
+									
+										if(tooltipItem.index > 0) {
+											dataset+= " iDelta: "+ (value-firstValue);
+											dataset+= " sDelta: "+(value-prevValue);
+										}
+										
 										return dataset;
 									}
 								}
@@ -226,6 +311,10 @@
 				
 			}
 					
+			if(legendDom != undefined) {
+				legend = window.charts[name].generateLegend();
+				domObject= $("#"+legendDom).html(legend);
+			}
 		}
 		
 		function createPieChart(name,datasetName, values, names, colors) {

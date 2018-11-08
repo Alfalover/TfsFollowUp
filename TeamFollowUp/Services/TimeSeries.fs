@@ -81,6 +81,9 @@ let removeWeekends serie =
        serie |> List.filter(fun x -> [DayOfWeek.Saturday;DayOfWeek.Sunday]
                                      |> List.contains(x.t.DayOfWeek) 
                                      |> not)
+
+let removeNights serie = 
+       serie |> List.filter(fun x -> x.t.Hour < 18 )
            
 
 

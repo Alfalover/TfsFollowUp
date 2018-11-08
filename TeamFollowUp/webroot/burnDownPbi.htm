@@ -47,7 +47,9 @@
 
 			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
 			$("#bottomNavbar").load("bottomMenu.htm",function() { updateBoostrap(); });
-		
+			
+			re = new URL(window.location);
+			var pbiId = re.searchParams.get("id");
 		
 			function getAreaProjection(dateFrom,dateTo,id,name,idList,area,field,html,id2) {
 			
@@ -77,12 +79,10 @@
 					window.global.projections[area][objectList.pbiId] = objectList
 					var color = window.getRandomColor(window.lineChartColors,Math.round(Math.random()*1000));
 					var name  = objectList.pbiId;
-					var id2t = undefined;
-					if(id2 != undefined) {
-						var id2t  = "burnDownPbi.htm?id="+ id2;
-					}
-					var dataset = createAreaDataset(name,objectList.serie,color,objectList.name,html,id2t);
-					createLinePlot("burnDown",window.global.names,dataset,"xLegend");
+
+
+					var dataset = createAreaDataset(name,objectList.serie,color,objectList.name,html);
+					createLinePlot("burnDown",window.global.names,dataset,"xLegend",70);
 					
 					// check end and request special items 
 				});
@@ -115,29 +115,12 @@
 					// really neeeded ? 
 					//window.global.projections[area][objectList.pbiId] = objectList
 					var dataset = createLineDataset(objectList.pbiId,objectList.serie,color,objectList.name);
-					createLinePlot("burnDown",window.global.names,dataset,"xLegend");
+					createLinePlot("burnDown",window.global.names,dataset,"xLegend",70);
 				});
 			};
 			
-			function getCapacityProjection(area) {
-			
-				if (window.global.projections[area] == undefined) 
-					window.global.projections[area] = {}
-					
-				var urlText2 = "api/TeamFollow/CapacitySerie"
-				
-				$.ajax({ type:'GET', url: encodeURI(urlText2), context: document.body })
-
-				.done(function (data) {		
-
-					var objectList = JSON.parse(data);
-					
-					var dataset = createLineDataset("Sprint Capacity",objectList,window.chartColors.limeGreen,"Sprint Capacity");
-					createLinePlot("burnDown",window.global.names,dataset,"xLegend");
-				});
-			};
  
-			$.ajax({ url: "/api/WorkFollow/GetAll", context: document.body })
+			$.ajax({ url: "/api/WorkFollow/GetId?id="+pbiId, context: document.body })
 
 
                 .done(function (data) {
@@ -148,7 +131,7 @@
                     var sprintName = objectList.selSprint.name;
 					var startDate = (new Date(objectList.selSprint.attributes.startDate));
 					var endSprintDate   = (new Date(objectList.selSprint.attributes.finishDate));
-					var endDate = moment().utc();
+					var endDate = moment(Date.now());
 					endDate.startOf('day');
 					endDate.add(1,'d');
 
@@ -160,6 +143,7 @@
 	
 					window.global.names = [];
 					
+					var endLDate = new Date()
 					var dateFormat = 'MMMM DD YYYY';
 					var date = moment(new Date(startDate), dateFormat);
 					var labels = [date];
@@ -182,50 +166,31 @@
 						var childIds = [];
 
 						var mushroom = new Date(x.item.fields["System.CreatedDate"]) > startDate;
-						var started = unstartedWorkStates.indexOf(x.item.fields["System.State"]) == -1; 
-							
+					
 						x.item.children.forEach(function(y) {
 							   
-							   
-							   if(started || mushroom){
-									childIds.push(y.id)
-								} else {
-									unstartedWork.push(y.id);
-								}
-								complete.push(y.id)
-						});
 						
-						
-						if(childIds.length > 0) {
-							
-							var name = x.item.id;
+							var name = y.id;
 							if(mushroom) 
 								name = name +"*";
-							name = name + " " + x.item.fields["System.Title"].substring(0,30) + "...";
+							name = name + " " + y.fields["System.Title"].substring(0,30) + "...";
 							getAreaProjection(startDate.toISOString(),
 										  endDate.toISOString(),
 										  name,
-										  x.item.fields["System.Title"],
-										  childIds,
+										  y.fields["System.Title"],
+										  [y.id],
 										  "RemWork",
 										  "Microsoft.VSTS.Scheduling.RemainingWork",
-										  x.item.Html,
-										  x.item.id)		
-						}
+										  y.Html,
+										  y.id)		
+				
+							complete.push(y.id)
+						});
+						
 
 					});
 					
-					if(unstartedWork.length > 0) {
-					
-						getAreaProjection(startDate.toISOString(),
-										  endDate.toISOString(),
-										  "Not Started Work",
-										  "Not Started work",
-										   unstartedWork,
-										  "RemWork",
-										  "Microsoft.VSTS.Scheduling.RemainingWork")	
-					
-					}
+	
 					
 					getLineProjection(startDate.toISOString(),
 										  endDate.toISOString(),
@@ -235,9 +200,26 @@
 										  "RemWork",
 										  "Microsoft.VSTS.Scheduling.RemainingWork",
 										  window.chartColors.purple);
+										  
+					getLineProjection(startDate.toISOString(),
+										  endDate.toISOString(),
+										  "Completed Work",
+										  "Completed Work",
+										  complete,
+										  "RemWork",
+										  "Microsoft.VSTS.Scheduling.CompletedWork",
+										  window.chartColors.orange);
+										  
+					getLineProjection(startDate.toISOString(),
+										  endDate.toISOString(),
+										  "Original Estimate",
+										  "Original Estimate",
+										  complete,
+										  "RemWork",
+										  "Microsoft.VSTS.Scheduling.OriginalEstimate",
+										  window.chartColors.green);
 										 
 										 
-					getCapacityProjection("RemWork");
 					
 					window.global.items = objectList.workItems;
 					
