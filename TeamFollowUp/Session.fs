@@ -27,7 +27,13 @@ open System
             new NetworkCredential(user,pass,domain) :> ICredentials  
 
         member val currentSession : sessionHolder = {credentials = (new NetworkCredential("","","") :> ICredentials)} with get,set    
-                                                                          
+        
+        member this.createSessionFromInputs user pass = 
+              let session = { credentials= GetCredential user pass }       
+              this.currentSession <- session
+              session
+
+         
         member this.createSession =   
          
             // Crendentials

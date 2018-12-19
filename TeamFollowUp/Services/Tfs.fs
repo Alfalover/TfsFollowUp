@@ -143,7 +143,7 @@ open Microsoft.Extensions.Configuration
                             "System.CreatedBy,System.ChangedDate,System.ChangedBy,Microsoft.VSTS.Scheduling.Effort," + 
                             "Microsoft.VSTS.Scheduling.RemainingWork,Microsoft.VSTS.Common.StateChangeDate," + 
                             "Microsoft.VSTS.Common.ClosedDate,Microsoft.VSTS.Scheduling.OriginalEstimate," + 
-                            "Microsoft.VSTS.Scheduling.CompletedWork,PBI.FinalEffort"
+                            "Microsoft.VSTS.Scheduling.CompletedWork,PBI.FinalEffort,MSCoW.Feature"
                             
         member this.GetDataObject<'T> (session : sessionHolder, url:Uri) = 
             printfn "REQ:%s " (url.ToString())
