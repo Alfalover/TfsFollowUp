@@ -15,6 +15,7 @@ open Microsoft.AspNetCore.Diagnostics
 open Microsoft.AspNetCore.Mvc
 open System.IO
 open System.Threading
+open TeamFollow
 
 type Startup(env: IHostingEnvironment) =
  
@@ -26,6 +27,7 @@ type Startup(env: IHostingEnvironment) =
                 .AddSingleton<UpdateService,UpdateService>()
                 .AddTransient<CapacityService,CapacityService>()
                 .AddTransient<WorkItemService,WorkItemService>()
+                .AddTransient<TeamService,TeamService>()
                 .AddLogging()
                 .AddMvcCore()
                 .AddJsonFormatters()

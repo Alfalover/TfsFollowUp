@@ -59,7 +59,7 @@
 
 
 
-    type WorkItemService(sessionService :SessionService, tfs: TfsService, upd : UpdateService) = 
+    type WorkItemService(upd : UpdateService) = 
     
         member this.GetWorkItemStatsById id sprint =     
             upd.WorkItemsList 

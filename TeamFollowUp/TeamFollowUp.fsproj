@@ -48,6 +48,8 @@
     <Compile Include="Services\Update.fs" />
     <Compile Include="Services\Capacity.fs" />
     <Compile Include="Services\WorkItem.fs" />
+    <Compile Include="Services\TeamFollow.fs" />
+    <Compile Include="Controllers\ControllerKpis.fs" />
     <Compile Include="Controllers\ControllerTeamFollow.fs" />
     <Compile Include="Controllers\ControllerUpdate.fs" />
     <Compile Include="Controllers\ControllerWorkFollow.fs" />

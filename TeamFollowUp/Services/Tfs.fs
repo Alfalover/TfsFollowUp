@@ -97,6 +97,7 @@ open Microsoft.Extensions.Configuration
         ``System.CreatedBy``: string
         ``System.ChangedDate``: string
         ``System.ChangedBy``: string
+        ``System.Tags``: string
         ``Microsoft.VSTS.Scheduling.Effort``: double
         ``Microsoft.VSTS.Scheduling.RemainingWork``:double
         ``Microsoft.VSTS.Common.StateChangeDate``:DateTime
@@ -104,6 +105,7 @@ open Microsoft.Extensions.Configuration
         ``Microsoft.VSTS.Scheduling.OriginalEstimate``: double
         ``Microsoft.VSTS.Scheduling.CompletedWork``: double
         ``PBI.FinalEffort``:double
+        ``MSCoW.Feature``:string
     }
 
     type workItem = {
@@ -143,7 +145,7 @@ open Microsoft.Extensions.Configuration
                             "System.CreatedBy,System.ChangedDate,System.ChangedBy,Microsoft.VSTS.Scheduling.Effort," + 
                             "Microsoft.VSTS.Scheduling.RemainingWork,Microsoft.VSTS.Common.StateChangeDate," + 
                             "Microsoft.VSTS.Common.ClosedDate,Microsoft.VSTS.Scheduling.OriginalEstimate," + 
-                            "Microsoft.VSTS.Scheduling.CompletedWork,PBI.FinalEffort,MSCoW.Feature"
+                            "Microsoft.VSTS.Scheduling.CompletedWork,PBI.FinalEffort,MSCoW.Feature,System.Tags"
                             
         member this.GetDataObject<'T> (session : sessionHolder, url:Uri) = 
             printfn "REQ:%s " (url.ToString())

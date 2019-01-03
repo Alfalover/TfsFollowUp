@@ -58,6 +58,8 @@
     
     type CapacityService(upd : UpdateService) = 
 
+        let MinDates dx dy = if dx > dy then dy else dx
+
         member this.GetCapacitySerie (sprint:Sprint) = 
                let data = upd.GetMemberCapacities sprint.id
                let teamdaysoff = (upd.GetTeamCapacities sprint.id).daysOff |> List.ofArray
@@ -86,7 +88,7 @@
                                         |> List.map(fun x -> {User = x.teamMember
                                                               Stats = {CapacityDay = x.activities.[0].capacityPerDay
                                                                        CapacitySprint = GetUserCapacity(x,sprint.attributes.startDate,sprint.attributes.finishDate,teamdaysoff)
-                                                                       CapacityUntilToday = GetUserCapacity(x,sprint.attributes.startDate,Nullable (DateTime.Today.AddDays(-1.0)),teamdaysoff)}})
+                                                                       CapacityUntilToday = GetUserCapacity(x,sprint.attributes.startDate,Nullable (MinDates (DateTime.Today.AddDays(-1.0)) sprint.attributes.finishDate.Value),teamdaysoff)}})
      
                members
         
