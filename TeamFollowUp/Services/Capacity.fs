@@ -10,6 +10,13 @@
         let days = (int)((dEnd-dStart).TotalDays)
         seq { for i in 0 .. days do yield dStart.AddDays((float)i) }
     
+    let GetUserFactor (user:TeamMember) (factors:memberFactorList) : double =
+             factors.value |> Array.tryFind(fun x -> x.teamMemberId = user.id)
+                           |> function 
+                              | Some x -> x.factor  
+                              | None -> 0.0
+
+
     let GetUserCapacity (m,sStart :Nullable<DateTime>,sEnd :Nullable<DateTime>,t) = 
 
            let cap = m.activities.[0].capacityPerDay;
@@ -41,6 +48,7 @@
         CapacityDay : double
         CapacitySprint: double
         CapacityUntilToday : double
+        Factor : double
     }
 
     type MemberStats = {
@@ -82,13 +90,15 @@
     
         member this.GetTeamMembersWork (sprint: Sprint) =
                let data = upd.GetMemberCapacities sprint.id
+               let factors = upd.GetTeamFactors sprint.id
                let teamdaysoff = (upd.GetTeamCapacities sprint.id).daysOff |> List.ofArray
                
                let members = data.value |> List.ofArray
                                         |> List.map(fun x -> {User = x.teamMember
                                                               Stats = {CapacityDay = x.activities.[0].capacityPerDay
                                                                        CapacitySprint = GetUserCapacity(x,sprint.attributes.startDate,sprint.attributes.finishDate,teamdaysoff)
-                                                                       CapacityUntilToday = GetUserCapacity(x,sprint.attributes.startDate,Nullable (MinDates (DateTime.Today.AddDays(-1.0)) sprint.attributes.finishDate.Value),teamdaysoff)}})
+                                                                       CapacityUntilToday = GetUserCapacity(x,sprint.attributes.startDate,Nullable (MinDates (DateTime.Today.AddDays(-1.0)) sprint.attributes.finishDate.Value),teamdaysoff)
+                                                                       Factor = GetUserFactor x.teamMember factors }})
      
                members
         
@@ -100,5 +110,6 @@
                                         CapacityDay = y |> List.sumBy(fun z -> z.Stats.CapacityDay)
                                         CapacitySprint = y |> List.sumBy(fun z -> z.Stats.CapacitySprint)
                                         CapacityUntilToday = y |> List.sumBy(fun z -> z.Stats.CapacityUntilToday)
+                                        Factor = y |> List.averageBy(fun z -> z.Stats.Factor)
                                      })
 

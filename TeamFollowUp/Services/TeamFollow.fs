@@ -10,10 +10,14 @@ type MemberFollowupStats = {
         
         user :TeamMember
         capacity: MemberStats
+        factor: double
+        debtHours : double
         debt: double
         completeness : double
         work : MemberWorkItemStats option
-}
+        CompletedFactor : double
+        debtHoursFactor : double
+        }
 
 type CompletedWork = {
 
@@ -43,27 +47,34 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                                                                                              | Some x -> y(x)
                                                                                              | None -> 0.0)
     
-    let computeDebt untilToday completed  =
+    let computeDebt untilToday completed factor  =
                                     untilToday |> function
                                                   | 0.0 -> 0.0
-                                                  | _   -> 100.0 * (untilToday-completed)/untilToday 
+                                                  | _   -> 100.0 * (untilToday-(completed*factor))/untilToday 
 
-    let computeCompleteness untilToday completed = 
+    let computeDebtHours untilToday completed factor  = (untilToday)-(completed*factor)
+
+    let computeCompleteness untilToday completed factor = 
                                     untilToday |> function
                                                   | 0.0 -> 100.0
-                                                  | _   -> 100.0 * (completed / untilToday)
+                                                  | _   -> 100.0 * ((completed*factor) / untilToday)
 
     member this.compute sprint : CompletedWork = 
-        let current = sprint
+        let current = sprint 
         let teamWork = workitems.GetMembersWorkStats current 
         let list = capacities.GetTeamMembersWork current 
                    |> Seq.map(fun x -> let userWork = teamWork  
                                                         |> List.tryFind(fun z -> z.user = x.User.displayName) 
+                                       let dFactor = computeDebtHours x.Stats.CapacityUntilToday (defaultField (fun x -> x.Completed) userWork)  (x.Stats.Factor)
                                        { user = x.User; 
                                          capacity =x; 
-                                         work = userWork
-                                         debt = computeDebt x.Stats.CapacityUntilToday (defaultField (fun x -> x.Completed) userWork)
-                                         completeness = computeCompleteness x.Stats.CapacityUntilToday (defaultField (fun x -> x.Completed) userWork)
+                                         work = userWork;
+                                         CompletedFactor = userWork.Value.Completed * (x.Stats.Factor);
+                                         debtHours = dFactor;
+                                         debtHoursFactor = dFactor/(x.Stats.Factor);
+                                         factor = x.Stats.Factor;
+                                         debt = computeDebt x.Stats.CapacityUntilToday (defaultField (fun x -> x.Completed) userWork) (x.Stats.Factor)
+                                         completeness = computeCompleteness x.Stats.CapacityUntilToday (defaultField (fun x -> x.Completed) userWork) (x.Stats.Factor)
                                        })
         { sprint = current; 
           members = list |> Array.ofSeq
@@ -79,6 +90,7 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                                               CapacityUntilToday = x.members |> sumby (fun y -> y.capacity.Stats.CapacityUntilToday)
                                               CapacitySprint = x.members |> sumby (fun y -> y.capacity.Stats.CapacitySprint)
                                               CapacityDay = x.members |> sumby (fun y -> y.capacity.Stats.CapacityDay)
+                                              Factor = x.members |> Array.averageBy(fun y ->y.capacity.Stats.Factor)
                                              }
                                   work = { Original = x.members  |> sumby (fun y -> (defaultField (fun x -> x.Original) y.work))
                                            Remaining = x.members |> sumby (fun y -> (defaultField (fun x -> x.Remaining) y.work))

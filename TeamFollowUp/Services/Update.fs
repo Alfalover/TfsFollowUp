@@ -37,8 +37,23 @@
         let teamRequest = fun x -> tfs.GetTeamCapacities session.currentSession x
         let teamRCache = new requestCache<teamCapacityList,string>(teamRequest,"TeamCap",requestCacheModeTimeSpan)
 
-        let  revRequest = fun x -> tfs.GetWorkItemRevisions session.currentSession x
+        let revRequest = fun x -> tfs.GetWorkItemRevisions session.currentSession x
         let revRCache = new requestCache<workItemList,int>(revRequest,"RevCap",requestCacheModeTimeSpan)
+
+        // Loads a default factors of 1 on every new sprint
+        let factorRequest x:memberFactorList =  
+                    memberRCache.request x
+                    |> fun x -> {
+                                  count = x.count
+                                  value = x.value 
+                                             |> Array.map( fun x ->   {
+                                                         teamMemberId = x.teamMember.id
+                                                         factor = 1.0
+                                                     }
+                                              )
+                                }
+                        
+        let factorCache = new requestCache<memberFactorList,string>(factorRequest,"FactorCap",TimeSpan.MaxValue)
 
         member val UpdateInProgress = false with get,set
 
@@ -52,6 +67,9 @@
         member this.GetMemberCapacities sprintGuid = memberRCache.request sprintGuid  
         member this.GetTeamCapacities sprintGuid  = teamRCache.request sprintGuid
         member this.GetRevisions id = revRCache.request id
+
+        member this.GetTeamFactors sprintGuid = factorCache.request sprintGuid
+        member this.SetTeamFactors sprintGuid newValue = factorCache.update sprintGuid newValue
 
         member this.performUpdate session = 
                       

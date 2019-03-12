@@ -5,10 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	<link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
     <script src="jquery-3.3.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	<script src="tools.js"></script>
+    <script src="tools.js"></script>
 
     <script type="text/javascript">
         jQuery(function ($) {
@@ -23,7 +23,15 @@
 
     <script>
 
-        function createPopover(index, member) {
+        function runFactorUpdate(input, member, sprint) {
+            console.log("run update");
+            inumber = input.parent().parent().parent().find("input[type=number]").val();
+
+            $.ajax({ url: "/api/Update/Factor?sprint=" + sprint + "&tmember=" + member + "&newFactor=" + inumber, context: document.body })
+                .done(function (data) { location.reload(); })
+        }
+
+        function createPopover(index, member, factor, sprintId) {
 
             rows = ""
 
@@ -38,7 +46,6 @@
                     '</tr>'
 
             });
-
 
             $("#popover-contents").append('<div id="popover-content-cplt' + index + '" class="hide">' +
                 '<div class="table-responsive">		' +
@@ -68,13 +75,23 @@
                 '</div></div>                       '
             );
 
+            $("#popover-contents")
+                .append('<div id="popover-content-factor' + index + '" class="hide">' +
+                    '<div class="table-responsive"><table><tr><td>		' +
+                    member.user.displayName +
+                    '</td></tr>' +
+                    '<tr><td><input id="facInput-' + member.user.id + '" type="number" step="any" min="0.01" value="' + factor + '"></input></td></tr>' +
+                    '<tr><td><button onClick="runFactorUpdate($(this),\'' + member.user.id + '\',\'' + sprintId + '\')">update</button></td></tr>' +
+                    '</table></div></div>'
+                );
+
         }
 
 
         $(document).ready(function () {
 
-			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
-			$("#bottomNavbar").load("bottomMenu.htm",function() { updateBoostrap(); });
+            $("#navbar").load("menu.htm", function () { updateBoostrap(); });
+            $("#bottomNavbar").load("bottomMenu.htm", function () { updateBoostrap(); });
 
             $.ajax({ url: "/api/TeamFollow", context: document.body })
 
@@ -90,37 +107,58 @@
                     $("#sprintStart").text((new Date(objectList.sprint.attributes.startDate)).toLocaleDateString())
                     $("#sprintEnd").text((new Date(objectList.sprint.attributes.finishDate)).toLocaleDateString())
                     $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
-					$("#projectName").text(objectList.project)
+                    $("#projectName").text(objectList.project)
 
                     var index = 0;
                     objectList.members.forEach(function (x) {
-                        
-                       if(x.work !== null){
-                       
-  					   $("#results tr:last")
-                            .after("<tr>" +
+
+                        if (x.work !== null) {
+
+                            var row0 = "<tr>" +
                                 "<td><img style=\"width:25px; height:25px\" class=\"vcenter img-circle\" src=" + x.user.imageUrl + " /></td>" +
                                 "<td><name class=\"col-md-12\"> " + x.user.displayName + "</name></td>" +
                                 "<td><original class=\"col-md-12\"> " + Number(x.work.Fields[0].Original).toFixed(1) + "</original></td>" +
                                 "<td><Remaining class=\"col-md-12\"> " + Number(x.work.Fields[0].Remaining).toFixed(1) + "</Remaining></td>" +
                                 "<td><a id=\"cplt" + index + "\" href=\"#\" type=\"button\" data-toggle=\"popover\" data-container=\"body\" data-placement=\"right\" type=\"button\" data-html=\"true\"> "
-                                + "<Completed  class=\"col-md-12\"> " + Number(x.work.Fields[0].Completed).toFixed(1) + "</Completed></a></td>" +
-                                "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.Stats.CapacityUntilToday + "</CapacityUntilToday></td>" +
-                                "<td><Debt class=\"col-md-12\"> " + Number(x.capacity.Stats.CapacityUntilToday - x.work.Fields[0].Completed).toFixed(1) + "</Debt></td>" +
-                                "<td>" + progressBar(-100, 100, x.debt,-20,5,-10,2.5) + "</td>" +
+
+                            var row1 = ""
+                            if (x.factor != 1) {
+                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Fields[0].Completed).toFixed(1) + "("
+                                    + x.CompletedFactor.toFixed(1)
+                                    + ")</Completed></a></td>"
+                            } else {
+                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Fields[0].Completed).toFixed(1) + "</Completed></a></td>"
+                            }
+                            var row2 = "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.Stats.CapacityUntilToday + "</CapacityUntilToday></td>"
+
+
+                            var row3 = ""
+
+                            if (x.factor != 1) {
+                                row3 = "<td><Debt class=\"col-md-12\"> " + + Number(x.debtHours).toFixed(1) + " (" + Number(x.debtHoursFactor).toFixed(1) + ")</Debt></td>"
+                            } else {
+                                row3 = "<td><Debt class=\"col-md-12\"> " + + Number(x.debtHours).toFixed(1) + "</Debt></td>"
+                            }
+
+                            var row4 = "<td>" + progressBar(-100, 100, x.debt, -20, 5, -10, 2.5) + "</td>" +
                                 "<td>" + progressBar(0, 100, x.completeness, 95) + "</td>" +
                                 "<td><Capacity class=\"col-md-12\"> " + x.capacity.Stats.CapacityDay + "</Capacity></td>" +
                                 "<td><CapacitySprint class=\"col-md-12\"> " + x.capacity.Stats.CapacitySprint + "</CapacitySprint></td>" +
-                                "</tr>");
+                                "<td><a id=\"factor" + index + "\"  href=\"#\" type=\"button\" data-toggle=\"popover\" data-container=\"body\" data-placement=\"left\" type=\"button\" data-html=\"true\"><factor class=\"col-md-12\"> " + x.capacity.Stats.Factor.toFixed(4) + "</Factor></a></td>" +
+                                "</tr>"
 
-                        createPopover(index, x);
-						
-						}
+
+                            $("#results tr:last")
+                                .after(row0 + row1 + row2 + row3 + row4);
+
+                            createPopover(index, x, x.capacity.Stats.Factor.toFixed(4), objectList.sprint.id);
+
+                        }
 
                         index++;
 
                     })
-					updateBoostrap();
+                    updateBoostrap();
                 });
 
 
@@ -148,8 +186,8 @@
             <h1 style="margin-top:25%" class="centered text-center">loading...</h1>
         </div>
     </div>
-	
-	<div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
+
+    <div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
 
     <div class="container">
         <h1>Team follow up</h1>
@@ -160,31 +198,32 @@
             <span class="pull-right marginright" id="sprintStart"></span>
             <span class="pull-right marginright"> From: </span>
         </sprintDesc>
-            <div class="table-responsive">
-                <table id="results" class="table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Developer</th>
-                            <th>Original      </th>
-                            <th>Remaining     </th>
-                            <th>Completed     </th>
-                            <th>Expected Today</th>
-                            <th>Debt          </th>
-                            <th>Debt %        </th>
-                            <th>Completeness %</th>
-                            <th>Capacity      </th>
-                            <th>Sprint        </th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+        <div class="table-responsive">
+            <table id="results" class="table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Developer</th>
+                        <th>Original      </th>
+                        <th>Remaining     </th>
+                        <th>Completed     </th>
+                        <th>Expected Today</th>
+                        <th>Debt          </th>
+                        <th>Debt %        </th>
+                        <th>Completeness %</th>
+                        <th>Capacity      </th>
+                        <th>Sprint        </th>
+                        <th>Factor        </th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
-   
-   <div class="hide" id="popover-contents" />
-   <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom"/>
+
+    <div class="hide" id="popover-contents" />
+    <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom" />
 
 </body>
 

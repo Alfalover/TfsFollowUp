@@ -13,7 +13,7 @@ type cacheRegister<'a> = {
 type cacheHolder<'i,'k when 'k :comparison> = Map<'k, cacheRegister<'i>>
 
 
-type requestCache<'item,'key when 'key :comparison>(requester,file,duration:TimeSpan) =
+type requestCache<'item,'key when 'key :comparison>(requester:'key -> 'item,file,duration:TimeSpan) =
 
     let listCount text (list:'a list) = 
         printfn "%s count %d" text list.Length
@@ -26,9 +26,12 @@ type requestCache<'item,'key when 'key :comparison>(requester,file,duration:Time
                           JsonConvert.DeserializeObject<Map<'key, cacheRegister<'item>>>(File.ReadAllText(completeFileName))
                        with ex ->  Map.empty 
                         
-    let createRequest key =
-           { item= requester key 
+    let createRegister item = 
+           { item= item
              timestamp = DateTime.UtcNow}
+
+    let createRequest key =
+          createRegister (requester key) 
 
     member val storingToken = false with get,set
 
@@ -40,6 +43,7 @@ type requestCache<'item,'key when 'key :comparison>(requester,file,duration:Time
                             this.storingToken <- false;
                             printfn  "%s Stored..." v
                          }
+
         this.storingToken |> function 
                               | false -> write(completeFileName)
                                          |> Async.StartImmediateAsTask 
@@ -80,6 +84,12 @@ type requestCache<'item,'key when 'key :comparison>(requester,file,duration:Time
                                                     //    (((DateTime.UtcNow-x.timestamp)<duration).ToString()) (duration.TotalMinutes.ToString())) ;
                                                     x.item
                                        | None -> (this.performRequest key).item
+    
+
+    member this.update key value = 
+                  this.cache |> Map.add key (createRegister value)
+                       |> this.store
+                       |> ignore
                                    
 
    

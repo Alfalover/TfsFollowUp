@@ -52,10 +52,21 @@ open Microsoft.Extensions.Configuration
         daysOff    : DaysOff[]
     }
 
+    type memberFactorRow = {
+        teamMemberId : string
+        factor       : double
+    }
+
     type memberCapacityList = {
             count : int
             value : memberCapacityRow[]
     }
+
+    type memberFactorList = {
+            count : int
+            value : memberFactorRow[]
+    }
+    
     
     type teamCapacityList = {
             daysOff : DaysOff[]
