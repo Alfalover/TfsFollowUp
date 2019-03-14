@@ -53,16 +53,25 @@ let TfsFollowUpStart(host:IWebHost) (session) =
 
 let TfsFollowUpInitialize (argv:string[]) =
 
-            printfn "Tfs Toni's follow up Tooling..."
+            printfn "Tfs Toni's follow up Tooling... rev 4"
 
             // Web server
             let contentRoot = Path.Combine(Directory.GetCurrentDirectory(),"webroot")
             let hostAddress = if argv.Length > 0 then argv.[0] else "http://+:4321"
 
             let configure =
-                new Action<IConfigurationBuilder> (
-                    fun x -> x.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(),"appsettings.json"),false,true)  |> ignore
-                             )
+                File.Exists("/run/secrets/tfsfollowup")
+                 |> function
+                    | true -> 
+                         printfn "--> using docker secret..."
+                         new Action<IConfigurationBuilder> (
+                             fun x -> x.AddJsonFile("/run/secrets/tfsfollowup",false,true)  |> ignore
+                                      )
+                    | false -> 
+                         printfn "--> using local appsettings.json.."
+                         new Action<IConfigurationBuilder> (
+                             fun x -> x.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(),"appsettings.json"),false,true)  |> ignore
+                                      )
 
             let host = WebHostBuilder()
                             .UseUrls(hostAddress)

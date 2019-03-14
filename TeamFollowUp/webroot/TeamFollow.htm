@@ -35,7 +35,7 @@
 
             rows = ""
 
-            member.work.Fields[0].Tasks.forEach(function (x) {
+            member.work.Tasks.forEach(function (x) {
 
                 rows += '<tr><td>' + x.id + '</td>' +
                     '    <td><a target="_blank" rel="noopener noreferrer" href="' + encodeURI(x.Html) + '" data-toggle="tooltip" title="' + x.fields["System.Title"] + '">' + x.fields["System.Title"] + '</a></td>' +
@@ -66,9 +66,9 @@
                 '            <td></td>              ' +
                 '            <td>Totals:</td>		 	    ' +
                 '            <td></td>		 	    ' +
-                '            <td>' + member.work.Fields[0].Original + '</td>' +
-                '            <td>' + member.work.Fields[0].Remaining + '</td>' +
-                '            <td>' + member.work.Fields[0].Completed + '</td>' +
+                '            <td>' + member.work.Original + '</td>' +
+                '            <td>' + member.work.Remaining + '</td>' +
+                '            <td>' + member.work.Completed + '</td>' +
                 '        </tr>                      ' +
                 '    </tfoot>                       ' +
                 '</table>                           ' +
@@ -117,17 +117,17 @@
                             var row0 = "<tr>" +
                                 "<td><img style=\"width:25px; height:25px\" class=\"vcenter img-circle\" src=" + x.user.imageUrl + " /></td>" +
                                 "<td><name class=\"col-md-12\"> " + x.user.displayName + "</name></td>" +
-                                "<td><original class=\"col-md-12\"> " + Number(x.work.Fields[0].Original).toFixed(1) + "</original></td>" +
-                                "<td><Remaining class=\"col-md-12\"> " + Number(x.work.Fields[0].Remaining).toFixed(1) + "</Remaining></td>" +
+                                "<td><original class=\"col-md-12\"> " + Number(x.work.Original).toFixed(1) + "</original></td>" +
+                                "<td><Remaining class=\"col-md-12\"> " + Number(x.work.Remaining).toFixed(1) + "</Remaining></td>" +
                                 "<td><a id=\"cplt" + index + "\" href=\"#\" type=\"button\" data-toggle=\"popover\" data-container=\"body\" data-placement=\"right\" type=\"button\" data-html=\"true\"> "
 
                             var row1 = ""
                             if (x.factor != 1) {
-                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Fields[0].Completed).toFixed(1) + "("
+                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Completed).toFixed(1) + "("
                                     + x.CompletedFactor.toFixed(1)
                                     + ")</Completed></a></td>"
                             } else {
-                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Fields[0].Completed).toFixed(1) + "</Completed></a></td>"
+                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Completed).toFixed(1) + "</Completed></a></td>"
                             }
                             var row2 = "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.Stats.CapacityUntilToday + "</CapacityUntilToday></td>"
 

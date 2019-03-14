@@ -171,7 +171,7 @@ function createLinePlot(name, names, dataset, legendDom, max) {
         showStdLegend = false;
     }
 
-    var tickMax = 300;
+    var tickMax = 350;
     if (max != undefined) {
         tickMax = max;
     }

@@ -8,6 +8,7 @@ open TfsFollowUp
 [<EntryPoint>]
 let main argv  =
     
+    //AppContext.SetSwitch("System.Net.Http.UseSocketsHttpHandler", false);
     let host = TfsFollowUpInitialize(argv)
 
     // Resolve 

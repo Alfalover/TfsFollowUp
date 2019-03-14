@@ -14,7 +14,7 @@ type MemberFollowupStats = {
         debtHours : double
         debt: double
         completeness : double
-        work : MemberWorkItemStats option
+        work : MemberWorkItemStats
         CompletedFactor : double
         debtHoursFactor : double
         }
@@ -65,16 +65,23 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
         let list = capacities.GetTeamMembersWork current 
                    |> Seq.map(fun x -> let userWork = teamWork  
                                                         |> List.tryFind(fun z -> z.user = x.User.displayName) 
-                                       let dFactor = computeDebtHours x.Stats.CapacityUntilToday (defaultField (fun x -> x.Completed) userWork)  (x.Stats.Factor)
+                                                        |> Option.defaultValue {
+                                                                                    user = x.User.displayName;
+                                                                                    Original = 0.0;
+                                                                                    Remaining = 0.0;
+                                                                                    Completed = 0.0;
+                                                                                    Tasks = List.empty
+                                                                                }
+                                       let dFactor = computeDebtHours x.Stats.CapacityUntilToday (userWork.Completed)  (x.Stats.Factor)
                                        { user = x.User; 
                                          capacity =x; 
                                          work = userWork;
-                                         CompletedFactor = userWork.Value.Completed * (x.Stats.Factor);
+                                         CompletedFactor = userWork.Completed * (x.Stats.Factor);
                                          debtHours = dFactor;
                                          debtHoursFactor = dFactor/(x.Stats.Factor);
                                          factor = x.Stats.Factor;
-                                         debt = computeDebt x.Stats.CapacityUntilToday (defaultField (fun x -> x.Completed) userWork) (x.Stats.Factor)
-                                         completeness = computeCompleteness x.Stats.CapacityUntilToday (defaultField (fun x -> x.Completed) userWork) (x.Stats.Factor)
+                                         debt = computeDebt x.Stats.CapacityUntilToday (userWork.Completed) (x.Stats.Factor)
+                                         completeness = computeCompleteness x.Stats.CapacityUntilToday (userWork.Completed) (x.Stats.Factor)
                                        })
         { sprint = current; 
           members = list |> Array.ofSeq
@@ -92,9 +99,9 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                                               CapacityDay = x.members |> sumby (fun y -> y.capacity.Stats.CapacityDay)
                                               Factor = x.members |> Array.averageBy(fun y ->y.capacity.Stats.Factor)
                                              }
-                                  work = { Original = x.members  |> sumby (fun y -> (defaultField (fun x -> x.Original) y.work))
-                                           Remaining = x.members |> sumby (fun y -> (defaultField (fun x -> x.Remaining) y.work))
-                                           Completed = x.members |> sumby (fun y -> (defaultField (fun x -> x.Completed) y.work))
+                                  work = { Original = x.members  |> sumby (fun y -> y.work.Original)
+                                           Remaining = x.members |> sumby (fun y -> y.work.Remaining)
+                                           Completed = x.members |> sumby (fun y -> y.work.Completed)
                                          }
                                   debt = x.members |> List.ofArray
                                                    |> List.averageBy(fun y -> y.debt)
