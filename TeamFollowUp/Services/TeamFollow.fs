@@ -83,6 +83,7 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                                          debt = computeDebt x.Stats.CapacityUntilToday (userWork.Completed) (x.Stats.Factor)
                                          completeness = computeCompleteness x.Stats.CapacityUntilToday (userWork.Completed) (x.Stats.Factor)
                                        })
+                   |> Seq.sortBy(fun x -> x.debtHoursFactor)
         { sprint = current; 
           members = list |> Array.ofSeq
           lastUpdate = update.LastUpdate

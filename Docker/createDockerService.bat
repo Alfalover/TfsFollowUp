@@ -1,1 +1,0 @@
-docker service create --name tfsfollowup --publish 4321:4321 --secret tfsfollowup tfsfollowup

@@ -16,7 +16,7 @@ type TeamFollowController( capacities : CapacityService, update : UpdateService,
 
 
     [<Route("CapacitySerie")>]
-    member this.CapacitySerie() = 
+    member this.CapacitySerie() : ActionResult  = 
                 
         update.SprintsList  |> List.tryFind(fun x -> x.attributes.timeFrame = TimeFrame.current)
                             |> function 
@@ -26,27 +26,31 @@ type TeamFollowController( capacities : CapacityService, update : UpdateService,
                                                                           (DateTimeOffset(current.attributes.finishDate.Value.AddDays(1.0)))
                                                                           (TimeSpan.FromHours(24.0))
                                                   |> TimeSeries.removeWeekends
-                                                  |> TimeSeries.removeNights
-                                                  |> JsonConvert.SerializeObject
-                                | None -> ""
+                                                  |> TimeSeries.removeNights 
+                                                  |> fun x -> new JsonResult(x) :> ActionResult  
+
+                                | None -> new EmptyResult() :> ActionResult
 
     [<Route("Summary")>]
-    member this.Summary() = 
+    member this.Summary() : ActionResult  = 
                 
         update.SprintsList  |> List.tryFind(fun x -> x.attributes.timeFrame = TimeFrame.current)
                             |> function 
                                 | Some current -> team.ComputeSummary current
                                                   |> function 
-                                                     | Some x -> x |> JsonConvert.SerializeObject
-                                                     | None -> ""
-                                | None -> ""
+                                                     | Some x -> new JsonResult(x)  :> ActionResult
+                                                     | None ->  new EmptyResult() :> ActionResult
+                                | None -> new EmptyResult() :> ActionResult
     
 
     [<HttpGet>]
-    member this.Get() = 
+    member this.Get() : ActionResult = 
+ 
         update.SprintsList  |> List.tryFind(fun x -> x.attributes.timeFrame = TimeFrame.current)
-                            |> function 
-                               | Some x-> team.compute x |> JsonConvert.SerializeObject
-                               | None -> ""
+                                                     |> function 
+                                                        | Some x-> new JsonResult((team.compute x)) :> ActionResult
+                                                        | None -> new EmptyResult() :> ActionResult
+                                                        
+                                                     
 
    

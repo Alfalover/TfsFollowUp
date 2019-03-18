@@ -1,4 +1,4 @@
-﻿FROM microsoft/dotnet:3.0-aspnetcore-runtime
+﻿FROM mcr.microsoft.com/dotnet/core/aspnet:3.0.0-preview3
 
 RUN apt-get update -y
 RUN apt-get install libcurl4-openssl-dev -y

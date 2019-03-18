@@ -16,13 +16,17 @@ open Microsoft.AspNetCore.Mvc
 open System.IO
 open System.Threading
 open TeamFollow
+open System.Reflection
+open Microsoft.AspNetCore.Server.Kestrel.Core
 
 type Startup(env: IHostingEnvironment) =
  
     member this.ConfigureServices(services: IServiceCollection) =
        
         
-        services.AddSingleton<SessionService,SessionService>()
+        services.Configure<KestrelServerOptions>( fun (ko:KestrelServerOptions) -> ko.AllowSynchronousIO <- true
+                                                                                   () )
+                .AddSingleton<SessionService,SessionService>()
                 .AddSingleton<TfsService,TfsService>()
                 .AddSingleton<UpdateService,UpdateService>()
                 .AddTransient<CapacityService,CapacityService>()
@@ -30,11 +34,16 @@ type Startup(env: IHostingEnvironment) =
                 .AddTransient<TeamService,TeamService>()
                 .AddLogging()
                 .AddMvcCore()
-                .AddJsonFormatters()
+                .AddNewtonsoftJson(fun options -> options.UseMemberCasing()
+                                                  |> ignore
+                                                  )
                 |> ignore
 
      member this.Configure (app: IApplicationBuilder) =
-        app.UseDeveloperExceptionPage().UseMvc().UseFileServer(false) |> ignore
+        app.UseDeveloperExceptionPage()
+           .UseMvc()
+           .UseFileServer(false)
+           |> ignore
 
 let TfsFollowUpStart(host:IWebHost) (session) =   
             // Start tfs data refresher
@@ -51,13 +60,23 @@ let TfsFollowUpStart(host:IWebHost) (session) =
 
             printfn "Data ready..."
 
+let GetExecutingDirectoryName() = 
+
+    let location = new Uri(Assembly.GetEntryAssembly().GetName().CodeBase)
+    let fileInfo = (new FileInfo(location.AbsolutePath))
+    fileInfo.Directory.FullName
+    |> Uri.UnescapeDataString
+
 let TfsFollowUpInitialize (argv:string[]) =
 
             printfn "Tfs Toni's follow up Tooling... rev 4"
 
             // Web server
-            let contentRoot = Path.Combine(Directory.GetCurrentDirectory(),"webroot")
-            let hostAddress = if argv.Length > 0 then argv.[0] else "http://+:4321"
+            let execPath = GetExecutingDirectoryName()
+            let contentRoot = Path.Combine(execPath,"webroot")
+            let hostAddress = if argv.Length > 0 then argv.[0] else "http://0.0.0.0:4321"
+
+            printfn "%s" hostAddress
 
             let configure =
                 File.Exists("/run/secrets/tfsfollowup")

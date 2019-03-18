@@ -130,9 +130,9 @@
                                                                  }
 
                                                     IterStatsCmp = { Deviation = 
-                                                                        x.fields.``Microsoft.VSTS.Scheduling.Effort`` |> function
-                                                                                                                         | 0.0 -> 0.0
-                                                                                                                         | _ -> (100.0 *(iterRemaining+iterCompleted)/iterOriginal)-100.0;
+                                                                        iterOriginal |> function
+                                                                                        | 0.0 -> 0.0
+                                                                                        | _ -> (100.0 *(iterRemaining+iterCompleted)/iterOriginal)-100.0;
                                                                      Progress = iterCompleted |> function 
                                                                                                  | 0.0 -> 0.0
                                                                                                  | _   -> 100.0 *iterCompleted /(iterCompleted+iterRemaining)

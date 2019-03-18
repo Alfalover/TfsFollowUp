@@ -2,24 +2,38 @@
 
 open Microsoft.AspNetCore.Mvc
 open Update
-open Newtonsoft.Json
 open Session
 open Tfs
+open Microsoft.Extensions.Configuration
 
+type extradef={
+                UseGifRanking : bool 
+                ShowDocker :bool
+                ShowNetCore: bool
+              }
 
 [<Route("api/Update")>]
-type UpdateController(sessionService: SessionService, update : UpdateService) =
+type UpdateController(sessionService: SessionService, update : UpdateService, config : IConfiguration) =
     inherit ControllerBase()
  
     [<Route("State")>]
     member this.State() = 
         update.UpdateInProgress
-        |> JsonConvert.SerializeObject
+        |> JsonResult :> ActionResult
 
     [<Route("Force")>]
     member this.Force() = 
         update.forceUpdate sessionService.currentSession
-        |> JsonConvert.SerializeObject
+        |> JsonResult :> ActionResult
+
+    [<Route("Extra")>]
+     member this.Extra() = 
+         {
+           UseGifRanking = ConvertBool (config.Item "extra:ShowNetCore")
+           ShowDocker = ConvertBool (config.Item "extra:ShowDocker")
+           ShowNetCore = ConvertBool (config.Item "extra:UseGifRanking")
+         }
+         |> JsonResult :> ActionResult
 
         
     [<Route("Factor")>]

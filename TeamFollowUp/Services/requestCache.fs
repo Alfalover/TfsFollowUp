@@ -4,6 +4,7 @@ open System
 open System.IO
 open Newtonsoft.Json
 open System
+open Microsoft.Extensions.Configuration
 
 type cacheRegister<'a> = {
         item : 'a
@@ -13,13 +14,15 @@ type cacheRegister<'a> = {
 type cacheHolder<'i,'k when 'k :comparison> = Map<'k, cacheRegister<'i>>
 
 
-type requestCache<'item,'key when 'key :comparison>(requester:'key -> 'item,file,duration:TimeSpan) =
+type requestCache<'item,'key when 'key :comparison>(requester:'key -> 'item,file,duration:TimeSpan,config : IConfiguration) =
 
     let listCount text (list:'a list) = 
         printfn "%s count %d" text list.Length
         list
 
-    let completeFileName = sprintf "%sReqCache.txt" file
+    let path = config.Item "folders:cache"
+
+    let completeFileName = Path.Combine(path,sprintf "%sReqCache.txt" file)
 
     let defaultCache:cacheHolder<'item,'key>  = 
                        try 

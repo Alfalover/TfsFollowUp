@@ -27,20 +27,20 @@ type KpiController(update : UpdateService, team: TeamService, workitems : WorkIt
                 
         update.SprintsList    |> List.map( fun current -> current
                                                           |> team.ComputeSummary)
-                              |> JsonConvert.SerializeObject
+                              |> JsonResult :> ActionResult
 
     [<Route("MemberComplete")>]
     member this.Member() = 
                 
         update.SprintsList    |> List.map( fun current -> current
                                                           |> team.compute)
-                              |> JsonConvert.SerializeObject
+                              |> JsonResult :> ActionResult
 
     [<Route("WorkItemComplete")>]
     member this.WorkItems (wtype:string) =
        
         update.SprintsList  
         |> List.map (fun x -> workitems.GetWorkItemStats wtype x)
-        |> JsonConvert.SerializeObject
+        |> JsonResult :> ActionResult
     
  

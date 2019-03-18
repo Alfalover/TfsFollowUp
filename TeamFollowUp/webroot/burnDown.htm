@@ -130,7 +130,7 @@
 
 				.done(function (data) {		
 
-					var objectList = JSON.parse(data);
+                    var objectList = data; //JSON.parse(data);
 					
 					var dataset = createLineDataset("Sprint Capacity",objectList,window.chartColors.limeGreen,"Sprint Capacity");
 					createLinePlot("burnDown",window.global.names,dataset,"xLegend");
@@ -143,7 +143,7 @@
                 .done(function (data) {
 
 
-                    var objectList = JSON.parse(data);
+                    var objectList = data; //JSON.parse(data);
 
                     var sprintName = objectList.selSprint.name;
 					var startDate = (new Date(objectList.selSprint.attributes.startDate));

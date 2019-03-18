@@ -19,7 +19,7 @@
         timestamp : DateTime
     }
 
-    let ConvertBool str =
+    let ConvertBool (str:string) =
             match System.Boolean.TryParse(str) with
             | (true,bool) -> bool
             | _ -> false
@@ -31,14 +31,16 @@
                                                                        | true  -> TimeSpan.MaxValue 
                                                                        | false -> TimeSpan.FromMinutes(10.0)
 
+        let path = config.Item "folders:cache"
+
         let memberRequest = fun x -> tfs.GetMemberCapacities session.currentSession x
-        let memberRCache = new requestCache<memberCapacityList,string>(memberRequest,"MemberCap",requestCacheModeTimeSpan)
+        let memberRCache = new requestCache<memberCapacityList,string>(memberRequest,"MemberCap",requestCacheModeTimeSpan,config)
     
         let teamRequest = fun x -> tfs.GetTeamCapacities session.currentSession x
-        let teamRCache = new requestCache<teamCapacityList,string>(teamRequest,"TeamCap",requestCacheModeTimeSpan)
+        let teamRCache = new requestCache<teamCapacityList,string>(teamRequest,"TeamCap",requestCacheModeTimeSpan,config)
 
         let revRequest = fun x -> tfs.GetWorkItemRevisions session.currentSession x
-        let revRCache = new requestCache<workItemList,int>(revRequest,"RevCap",requestCacheModeTimeSpan)
+        let revRCache = new requestCache<workItemList,int>(revRequest,"RevCap",requestCacheModeTimeSpan,config)
 
         // Loads a default factors of 1 on every new sprint
         let factorRequest x:memberFactorList =  
@@ -53,7 +55,7 @@
                                               )
                                 }
                         
-        let factorCache = new requestCache<memberFactorList,string>(factorRequest,"FactorCap",TimeSpan.MaxValue)
+        let factorCache = new requestCache<memberFactorList,string>(factorRequest,"FactorCap",TimeSpan.MaxValue,config)
 
         member val UpdateInProgress = false with get,set
 
@@ -96,9 +98,9 @@
                       this.LastUpdate <- DateTime.UtcNow
         
                       if(this.SprintsList.Length > 0) then
-                          File.WriteAllText("SprintList.txt",JsonConvert.SerializeObject(this.SprintsList))
-                          File.WriteAllText("WorkItemList.txt",JsonConvert.SerializeObject(this.WorkItemsList))
-                          File.WriteAllText("LastUpdate.txt",JsonConvert.SerializeObject(this.LastUpdate))
+                          File.WriteAllText(Path.Combine(path,"SprintList.txt"),JsonConvert.SerializeObject(this.SprintsList))
+                          File.WriteAllText(Path.Combine(path,"WorkItemList.txt"),JsonConvert.SerializeObject(this.WorkItemsList))
+                          File.WriteAllText(Path.Combine(path,"LastUpdate.txt"),JsonConvert.SerializeObject(this.LastUpdate))
     
                       this.updateEvent.Trigger this.LastUpdate
                       this.UpdateInProgress <- false; 
@@ -113,9 +115,9 @@
         
                // Load from disk last state
                try
-                    let sprintsList = JsonConvert.DeserializeObject<Sprint list>(File.ReadAllText("SprintList.txt"))
-                    let workItemsList = JsonConvert.DeserializeObject<workItem list>(File.ReadAllText("WorkItemList.txt"))
-                    let lastUpdate = JsonConvert.DeserializeObject<DateTime>(File.ReadAllText("LastUpdate.txt"))
+                    let sprintsList = JsonConvert.DeserializeObject<Sprint list>(File.ReadAllText(Path.Combine(path,"SprintList.txt")))
+                    let workItemsList = JsonConvert.DeserializeObject<workItem list>(File.ReadAllText(Path.Combine(path,"WorkItemList.txt")))
+                    let lastUpdate = JsonConvert.DeserializeObject<DateTime>(File.ReadAllText(Path.Combine(path,"LastUpdate.txt")))
                     this.SprintsList <- sprintsList
                     this.WorkItemsList <- workItemsList
                     this.LastUpdate <- lastUpdate

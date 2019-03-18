@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2043
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28711.60
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TeamFollowUpConsole", "TeamFollowUpConsole\TeamFollowUpConsole.fsproj", "{2D1D2F29-91B2-4280-922D-59D7498FA4EC}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TeamFollowUpTest", "TeamFollowUpTest\TeamFollowUpTest.fsproj", "{5685E0A9-7787-47B3-883C-3AE120CF946A}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TeamFollowUp", "TeamFollowUp\TeamFollowUp.fsproj", "{9D6829B3-2168-4DB5-B9AF-3DE8DE18905B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TfsFollowUpService", "TfsFollowUpService\TfsFollowUpService.csproj", "{8F7E0F28-103E-4103-B3FA-72BD4D898272}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{9D6829B3-2168-4DB5-B9AF-3DE8DE18905B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D6829B3-2168-4DB5-B9AF-3DE8DE18905B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D6829B3-2168-4DB5-B9AF-3DE8DE18905B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F7E0F28-103E-4103-B3FA-72BD4D898272}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F7E0F28-103E-4103-B3FA-72BD4D898272}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F7E0F28-103E-4103-B3FA-72BD4D898272}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F7E0F28-103E-4103-B3FA-72BD4D898272}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

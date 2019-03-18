@@ -64,11 +64,11 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
                                 | Some current -> { sprint = current
                                                     summary = current |> workitems.GetGlobalWorkStats wtype
                                                     lastUpdate = update.LastUpdate}
-                                                  |> JsonConvert.SerializeObject
-                                | None -> ""
+                                                  |> JsonResult :> ActionResult
+                                | None -> EmptyResult() :> ActionResult
 
     [<Route("Projection")>]
-    member this.Projection (id:string) (field:string) =         
+    member this.Projection (id:string) (field:string)  =         
         let data =  update.GetRevisions (int id)
         let serie = data.value 
                         |> List.ofArray
@@ -80,12 +80,12 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
           projectedField = field
           count = serie.Length
           serie = serie |> Array.ofList  }
-        |> JsonConvert.SerializeObject
+        |> JsonResult :> ActionResult
     
  
     [<HttpPost>]
     [<Route("GroupProjection")>]
-    member this.GroupProjection ([<FromBody>]request:GroupRequest) =
+    member this.GroupProjection ([<FromBody>]request:GroupRequest) : ActionResult =
                                
         let data = request.id |> List.map(fun x -> update.GetRevisions x)
         
@@ -119,7 +119,7 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
           count = serie.Length
           serie = serie |> Array.ofList  
           }
-        |> JsonConvert.SerializeObject
+        |> JsonResult :> ActionResult
 
 
     
@@ -129,7 +129,7 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
         |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
         |> List.head
         |>  workitems.GetWorkItemStatsById id
-        |> JsonConvert.SerializeObject
+        |> JsonResult :> ActionResult
 
     [<HttpGet>]
     member this.Get(wtype:string) = 
@@ -137,7 +137,7 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
         |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
         |> List.head
         |>  workitems.GetWorkItemStats wtype
-        |> JsonConvert.SerializeObject
+        |> JsonResult :> ActionResult
 
 
     [<Route("GetAll")>]
@@ -146,4 +146,4 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
         |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
         |> List.head
         |>  workitems.GetAllStats
-        |> JsonConvert.SerializeObject
+        |> JsonResult :> ActionResult

@@ -126,7 +126,7 @@
                 .done(function (data) {
 
 
-                    var objectList = JSON.parse(data);
+                    var objectList = data; //JSON.parse(data);
 
                     var sprintName = objectList.selSprint.name;
 					var startDate = (new Date(objectList.selSprint.attributes.startDate));
