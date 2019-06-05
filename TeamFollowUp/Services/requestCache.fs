@@ -83,8 +83,8 @@ type requestCache<'item,'key when 'key :comparison>(requester:'key -> 'item,file
     member this.request key = 
                 this.timeSearch key |> function 
                                        | Some x -> 
-                                                    //(printfn "%s At Cache.. %s -- %s ->%s d:%s" file (x.timestamp.ToString()) (((DateTime.UtcNow-x.timestamp).TotalMinutes).ToString())
-                                                    //    (((DateTime.UtcNow-x.timestamp)<duration).ToString()) (duration.TotalMinutes.ToString())) ;
+                                                    (printfn "%s At Cache.. %s -- %s ->%s d:%s" file (x.timestamp.ToString()) (((DateTime.UtcNow-x.timestamp).TotalMinutes).ToString())
+                                                        (((DateTime.UtcNow-x.timestamp)<duration).ToString()) (duration.TotalMinutes.ToString())) ;
                                                     x.item
                                        | None -> (this.performRequest key).item
     

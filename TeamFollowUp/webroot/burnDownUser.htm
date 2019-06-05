@@ -175,15 +175,20 @@
 					objectList.workItems.forEach(function (x) {
 							
 						x.item.children.forEach(function(y) {
-							   
-								var r = byUser[x.item.fields["System.AssignedTo"]]
-								
-								if (r == undefined) r = [];
-								
-								r.push(y.id);
-								complete.push(y.id)
-											
-								byUser[x.item.fields["System.AssignedTo"]] = r;
+
+                            var currentSprint = y.fields["System.IterationPath"].endsWith(sprintName);
+                            if (currentSprint) {
+
+                                var r = byUser[x.item.fields["System.AssignedTo"]]
+
+                                if (r == undefined) r = [];
+
+                                r.push(y.id);
+                                complete.push(y.id)
+
+                                byUser[x.item.fields["System.AssignedTo"]] = r;
+
+                            }
 						});
 					});
 					

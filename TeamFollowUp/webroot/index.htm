@@ -4,11 +4,11 @@
     <title>Tfs Toni FollowUp tools</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="jquery-3.3.1.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="Chart.bundle.min.js"></script>
     <script src="tools.js"></script>
 
     <script type="text/javascript">
@@ -220,14 +220,23 @@
 
                 .done(function (data) {
 
+                    ncanm = [anStep("A", "#netCoreA", { opacity: "+=1", left: "+=450" }, 800),
+                    anStep("A", "#netCoreL", { opacity: "+=1", left: "+=525" }, 400),
+                    anStep("T", null, null, 1000),
+                    anStep("A", "#netCoreA", { opacity: "-=1" }, 800),
+                    anStep("A", "#netCoreL", { opacity: "-=1" }, 800),
+                    ]
 
-                    $("#dockerW").animate({ left: "+=200" }, 1400,
-                        function () {
-                            $("#dockerT").animate({ opacity: "+=1" }, 500,
-                                function () {
-                                    setTimeout(function () { $("#dockerW").animate({ opacity: "-=1" }, 2500) }, 1000);
-                                });
-                        });
+                    anm = [anStep("A", "#dockerW", { left: "+=300" }, 1400),
+                    anStep("A", "#dockerT", { opacity: "+=1" }, 500),
+                    anStep("C", null, function () { runAnim(ncanm); }, 0),
+                    anStep("T", null, null, 1500),
+                    anStep("A", "#dockerW", { opacity: "-=1" }, 2500),
+                    ]
+
+                    runAnim(anm);
+
+
                 });
         });
 
@@ -375,6 +384,28 @@
 					font-size: 18px;
 					text-shadow: 1px 1px 3px #e6c108;
 				">Now runs on Docker !</div>
+    </div>
+
+    <div id="netCoreA" style="opacity: 0;
+							  font-size: 88px;
+							  text-shadow: 1px 1px 3px #e6c108;
+							  height:auto;
+							  padding:0px 0px;
+							  text-align:center;
+							  top:60%;
+							  left:-15%;
+							  position:absolute;float:right;
+							 ">&</div>
+
+    <div id="netCoreL" style="opacity: 0;
+							  height:auto;
+							  padding:0px 0px;
+							  text-align:center;
+							  top:60%;
+							  left:-15%;
+							  position:absolute;float:right;
+							 ">
+        <image src="netcorelogo.png" width="130px" />
     </div>
 
 

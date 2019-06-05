@@ -90,7 +90,8 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
         let data = request.id |> List.map(fun x -> update.GetRevisions x)
         
         let series = data |> List.map(fun x -> x.value |> List.ofArray 
-                                                      |> this.getSerie request.field )  
+                                                      |> this.getSerie
+                                                      request.field )  
 
 
         let serie = series 

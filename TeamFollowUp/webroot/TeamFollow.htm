@@ -4,10 +4,10 @@
     <title>Team Follow up</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="jquery-3.3.1.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="bootstrap.min.js"></script>
     <script src="tools.js"></script>
 
     <script type="text/javascript">
@@ -29,6 +29,37 @@
 
             $.ajax({ url: "/api/Update/Factor?sprint=" + sprint + "&tmember=" + member + "&newFactor=" + inumber, context: document.body })
                 .done(function (data) { location.reload(); })
+        }
+
+        function createPodiumAnimation() {
+
+            $(".podium").each(function (i, obj) {
+
+                console.log("itemsIn");
+                var diff = 100 - obj.attributes.xtop.nodeValue;
+                obj.style.display = "block";
+                var anm = [anStep("A", "#" + obj.id, { top: "-=" + diff + "%" }, 1400)]
+
+                runAnim(anm);
+
+
+            });
+
+        }
+
+        function createPodium(index, x, num) {
+
+            var width = 100.0 / (num * 2)
+            var height = 15 + (2 * (num - index));
+            var top = 100 - height;
+            var left = ((width + (width / 2)) * index) + (width / 2);
+
+            podium = '<div id="podium' + index + '" class="podium" xtop="' + top + '" style=" height: ' + height + '%;width: ' + width + '%; top: 100%; left: ' + left + '%;">'
+                + '<div id="dockerT" class="podiumText">' + (index + 1) + '</div>'
+                + '<div id="dockerT" class="podiumText">' + x.user.displayName + '</div></div>'
+
+            $(".container").after(podium);
+
         }
 
         function createPopover(index, member, factor, sprintId) {
@@ -153,12 +184,15 @@
 
                             createPopover(index, x, x.capacity.Stats.Factor.toFixed(4), objectList.sprint.id);
 
+                            //createPodium(index, x, objectList.members.length);
+
                         }
 
                         index++;
 
                     })
                     updateBoostrap();
+                    //createPodiumAnimation();
                 });
 
 
@@ -219,10 +253,13 @@
                 <tbody></tbody>
             </table>
         </div>
+        <div class="hide" id="popover-contents" />
+
     </div>
 
 
-    <div class="hide" id="popover-contents" />
+
+    <div></div>
     <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom" />
 
 </body>

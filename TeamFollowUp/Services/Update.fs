@@ -33,9 +33,12 @@
 
         let path = config.Item "folders:cache"
 
-        let memberRequest = fun x -> tfs.GetMemberCapacities session.currentSession x
-        let memberRCache = new requestCache<memberCapacityList,string>(memberRequest,"MemberCap",requestCacheModeTimeSpan,config)
-    
+        //let memberRequest = fun x -> tfs.GetMemberCapacities session.currentSession x
+        //let memberRCache = new requestCache<memberCapacityList,string>(memberRequest,"MemberCap",requestCacheModeTimeSpan,config)
+       
+        let memberRCache = tfs.GetMemberCapacities session.currentSession
+                           |> RequestCacheFun.Cache "MemberCap" requestCacheModeTimeSpan config
+
         let teamRequest = fun x -> tfs.GetTeamCapacities session.currentSession x
         let teamRCache = new requestCache<teamCapacityList,string>(teamRequest,"TeamCap",requestCacheModeTimeSpan,config)
 
@@ -44,7 +47,7 @@
 
         // Loads a default factors of 1 on every new sprint
         let factorRequest x:memberFactorList =  
-                    memberRCache.request x
+                    memberRCache x
                     |> fun x -> {
                                   count = x.count
                                   value = x.value 
@@ -66,7 +69,7 @@
         member val LastUpdate = DateTime.MinValue with get, set
         member val ProjectName = tfs.ProjectName
         
-        member this.GetMemberCapacities sprintGuid = memberRCache.request sprintGuid  
+        member this.GetMemberCapacities sprintGuid = memberRCache sprintGuid  
         member this.GetTeamCapacities sprintGuid  = teamRCache.request sprintGuid
         member this.GetRevisions id = revRCache.request id
 

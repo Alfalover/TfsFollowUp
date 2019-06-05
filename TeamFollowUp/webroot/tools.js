@@ -421,6 +421,59 @@ function progressBar(min, max, value, dangerLower, dangerHigher, warningLower, w
 
 }
 
+function anStep(kd, id, anim, time) {
+
+    return {
+        kd: kd,
+        id: id,
+        ob: anim,
+        tm: time
+    }
+}
+
+function intRunAnim(anm) {
+
+
+
+    if (anm.step < anm.list.length) {
+
+        var item = anm.list[anm.step]
+        switch (item.kd) {
+
+            case "A":
+                $(item.id).animate(item.ob, item.tm, function () { intRunAnim({ step: anm.step + 1, list: anm.list }); });
+                break;
+
+            case "T":
+                setTimeout(function () { intRunAnim({ step: anm.step + 1, list: anm.list }); }, item.tm);
+                break;
+
+            case "C":
+                setTimeout(function () {
+                    item.ob();
+                    intRunAnim({ step: anm.step + 1, list: anm.list });
+                }, item.tm);
+                break;
+
+        }
+    }
+
+}
+
+function runAnim(anm) {
+
+    var run = { step: 0, list: anm, rset: {} }
+
+    // generate reset state
+    for (var step in anm) {
+
+        if (step.id != null)
+            run.rset[step.id] = $(step.id).style;
+    }
+
+    intRunAnim(run);
+}
+
 function updateBoostrap() {
 
     setTimeout(function () {
