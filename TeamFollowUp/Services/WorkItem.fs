@@ -18,6 +18,7 @@
         Original : double
         Remaining : double
         Completed : double
+        CompletedUnFactor: double
     }
 
     type workStatsComputation = {    
@@ -29,10 +30,13 @@
         
         item : workItem
         Effort: double
+
         ItemStats: workStats
         ItemStatsCmp: workStatsComputation
+
         IterStats: workStats
         IterStatsCmp:  workStatsComputation
+
         CrosIter: bool
     }
 
@@ -59,7 +63,7 @@
 
 
 
-    type WorkItemService(upd : UpdateService) = 
+    type WorkItemService(upd : UpdateService, capacities : CapacityService) = 
     
         member this.GetWorkItemStatsById id sprint =     
             upd.WorkItemsList 
@@ -82,13 +86,38 @@
                 |> List.filter(fun x -> x.children |> List.ofArray
                                                    |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path) 
                                                    |> List.length > 0)
-                |> this.MapOutput sprint                  
-            
+                |> this.MapOutput sprint      
+                
+        member this.GetCompletedWork wi =
+            wi |> fun y -> y.fields.``Microsoft.VSTS.Scheduling.CompletedWork``
+
+        member this.GetFactorCorrectedCompletedWork sprint wi =
+
+            let assignedTo = wi.fields.``System.AssignedTo`` 
+                            |> function 
+                                |null -> None
+                                |x    -> Some x
+
+
+            let userFactor = assignedTo |> function 
+                                           |None -> 1.0
+                                           |Some x ->
+                                                 capacities.GetTeamMembersWork sprint  
+                                                 |> List.find(fun m -> m.User.displayName.EndsWith(x))
+                                                 |> fun m -> m.Stats.Factor
+
+            wi |> fun y -> y.fields.``Microsoft.VSTS.Scheduling.CompletedWork`` * userFactor
+
+
         member this.MapOutput sprint items=     
             let sItems = items 
                            |> List.map(fun x -> 
                                                  let itemCompleted = x.children |> List.ofArray
-                                                                                |> List.sumBy(fun y -> y.fields.``Microsoft.VSTS.Scheduling.CompletedWork``) 
+                                                                                |> List.sumBy(fun y -> this.GetCompletedWork y) 
+
+                                                 let itemFactorCompleted = x.children |> List.ofArray
+                                                                                      |> List.sumBy(fun y -> this.GetFactorCorrectedCompletedWork sprint y)
+
                                                  let itemOriginal  = x.children |> List.ofArray 
                                                                                 |> List.sumBy(fun y -> y.fields.``Microsoft.VSTS.Scheduling.OriginalEstimate``)           
                                                  let itemRemaining =  x.children |> List.ofArray
@@ -96,7 +125,11 @@
                                              
                                                  let iterCompleted = x.children |> List.ofArray 
                                                                                 |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path)
-                                                                                |> List.sumBy(fun y -> y.fields.``Microsoft.VSTS.Scheduling.CompletedWork``) 
+                                                                                |> List.sumBy(fun y -> this.GetCompletedWork y) 
+
+                                                 let iterFactorCompleted = x.children |> List.ofArray 
+                                                                                      |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path)
+                                                                                      |> List.sumBy(fun y -> this.GetFactorCorrectedCompletedWork sprint y)
                                                  
                                                  let iterOriginal = x.children |> List.ofArray 
                                                                                |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path)
@@ -110,7 +143,8 @@
                                                  {  item = x
                                                     Effort= x.fields.``Microsoft.VSTS.Scheduling.Effort``
 
-                                                    ItemStats = {Completed = itemCompleted
+                                                    ItemStats = {Completed = itemFactorCompleted
+                                                                 CompletedUnFactor = itemCompleted
                                                                  Original = itemOriginal
                                                                  Remaining = itemRemaining
                                                                 }
@@ -124,7 +158,8 @@
                                                                                                  | _   -> 100.0 *itemCompleted/(itemCompleted+itemRemaining)
                                                                    }
 
-                                                    IterStats = {Completed = iterCompleted
+                                                    IterStats = {Completed = iterFactorCompleted
+                                                                 CompletedUnFactor = iterCompleted
                                                                  Original =  iterOriginal
                                                                  Remaining = iterRemaining
                                                                  }
@@ -165,6 +200,7 @@
             | [] -> { kind = kind
                       Effort = 0.0
                       Stats= { Completed = 0.0
+                               CompletedUnFactor = 0.0
                                Remaining = 0.0
                                Original = 0.0
                              }
@@ -177,6 +213,7 @@
             | a -> { kind = kind
                      Effort = a |> List.sumBy(fun x -> x.Effort)
                      Stats= { Completed = a |> List.sumBy(fun x -> x.IterStats.Completed)
+                              CompletedUnFactor = a |> List.sumBy(fun x -> x.IterStats.CompletedUnFactor)
                               Remaining = a |> List.sumBy(fun x -> x.IterStats.Remaining)
                               Original = a |> List.sumBy(fun x -> x.IterStats.Original)
                             }

@@ -5,7 +5,7 @@
     open System.IO
     open Tfs
     open Microsoft.Extensions.Configuration
-    open RequestCache
+    open RequestCacheFun
     open Session
 
 
@@ -33,21 +33,19 @@
 
         let path = config.Item "folders:cache"
 
-        //let memberRequest = fun x -> tfs.GetMemberCapacities session.currentSession x
-        //let memberRCache = new requestCache<memberCapacityList,string>(memberRequest,"MemberCap",requestCacheModeTimeSpan,config)
-       
         let memberRCache = tfs.GetMemberCapacities session.currentSession
-                           |> RequestCacheFun.Cache "MemberCap" requestCacheModeTimeSpan config
+                           |> Cache "MemberCap" requestCacheModeTimeSpan config
 
-        let teamRequest = fun x -> tfs.GetTeamCapacities session.currentSession x
-        let teamRCache = new requestCache<teamCapacityList,string>(teamRequest,"TeamCap",requestCacheModeTimeSpan,config)
+        let teamRCache = tfs.GetTeamCapacities session.currentSession
+                         |> Cache "TeamCap" requestCacheModeTimeSpan config 
 
-        let revRequest = fun x -> tfs.GetWorkItemRevisions session.currentSession x
-        let revRCache = new requestCache<workItemList,int>(revRequest,"RevCap",requestCacheModeTimeSpan,config)
+
+        let revRCache = tfs.GetWorkItemRevisions session.currentSession
+                        |> Cache "RevCap" requestCacheModeTimeSpan config 
 
         // Loads a default factors of 1 on every new sprint
         let factorRequest x:memberFactorList =  
-                    memberRCache x
+                    fst memberRCache x
                     |> fun x -> {
                                   count = x.count
                                   value = x.value 
@@ -58,7 +56,7 @@
                                               )
                                 }
                         
-        let factorCache = new requestCache<memberFactorList,string>(factorRequest,"FactorCap",TimeSpan.MaxValue,config)
+        let factorCache = factorRequest |> Cache "FactorCap" TimeSpan.MaxValue config
 
         member val UpdateInProgress = false with get,set
 
@@ -69,12 +67,12 @@
         member val LastUpdate = DateTime.MinValue with get, set
         member val ProjectName = tfs.ProjectName
         
-        member this.GetMemberCapacities sprintGuid = memberRCache sprintGuid  
-        member this.GetTeamCapacities sprintGuid  = teamRCache.request sprintGuid
-        member this.GetRevisions id = revRCache.request id
+        member this.GetMemberCapacities sprintGuid = fst memberRCache sprintGuid  
+        member this.GetTeamCapacities sprintGuid  = fst teamRCache sprintGuid
+        member this.GetRevisions id = fst revRCache id
 
-        member this.GetTeamFactors sprintGuid = factorCache.request sprintGuid
-        member this.SetTeamFactors sprintGuid newValue = factorCache.update sprintGuid newValue
+        member this.GetTeamFactors sprintGuid = fst factorCache sprintGuid
+        member this.SetTeamFactors sprintGuid newValue = snd factorCache sprintGuid newValue
 
         member this.performUpdate session = 
                       

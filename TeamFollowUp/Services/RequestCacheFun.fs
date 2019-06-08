@@ -31,10 +31,11 @@ let createRegister item = { item= item
 let createRequest key requester =
       createRegister (requester key) 
 
-let sb:AsyncSubject<obj*string> = Subject.async
+let sb:Subject<Object*string> = Subject.broadcast
 
-let write fileName cache =  File.WriteAllText(fileName,JsonConvert.SerializeObject(cache));
-                            printfn  "%s Stored..." fileName
+let write fileName cache =  printfn  "%s Stored..." fileName
+                            File.WriteAllText(fileName,JsonConvert.SerializeObject(cache));
+                            
          
 let stbs  = sb
             |> Observable.throttle(TimeSpan.FromSeconds(2.0))
@@ -46,8 +47,8 @@ type requestCache<'item,'key when 'key :comparison>(requester:'key -> 'item,file
 
     let completeFileName = getPath config file
 
-    member private this.storeToDisk filename cache =         
-        sb.OnNext((cache,file))
+    member private this.storeToDisk cache =         
+        sb.OnNext((cache,completeFileName))
         cache
 
     member private this.store cache = 
@@ -76,8 +77,8 @@ type requestCache<'item,'key when 'key :comparison>(requester:'key -> 'item,file
     member this.request key = 
                 this.timeSearch key |> function 
                                        | Some x -> 
-                                                    (printfn "%s At Cache.. %s -- %s ->%s d:%s" file (x.timestamp.ToString()) (((DateTime.UtcNow-x.timestamp).TotalMinutes).ToString())
-                                                        (((DateTime.UtcNow-x.timestamp)<duration).ToString()) (duration.TotalMinutes.ToString())) ;
+                                                    //(printfn "%s At Cache.. %s -- %s ->%s d:%s " file (x.timestamp.ToString()) (((DateTime.UtcNow-x.timestamp).TotalMinutes).ToString()) 
+                                                    //    (((DateTime.UtcNow-x.timestamp)<duration).ToString()) (duration.TotalMinutes.ToString())) ;
                                                     x.item
                                        | None -> (this.performRequest key).item
     
@@ -89,6 +90,5 @@ type requestCache<'item,'key when 'key :comparison>(requester:'key -> 'item,file
 
 let Cache<'k,'i when 'i :comparison> file duration config requester = 
     let rc = new requestCache<'k,'i>(requester,file,duration,config)
-    rc.request                                   
+    (rc.request,rc.update)                                   
 
-   

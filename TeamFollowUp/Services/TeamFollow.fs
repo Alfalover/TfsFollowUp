@@ -103,6 +103,7 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                                   work = { Original = x.members  |> sumby (fun y -> y.work.Original)
                                            Remaining = x.members |> sumby (fun y -> y.work.Remaining)
                                            Completed = x.members |> sumby (fun y -> y.work.Completed)
+                                           CompletedUnFactor = x.members |> sumby (fun y -> y.work.Completed)
                                          }
                                   debt = x.members |> List.ofArray
                                                    |> List.averageBy(fun y -> y.debt)
