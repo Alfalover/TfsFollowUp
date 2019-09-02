@@ -64,7 +64,7 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
         let teamWork = workitems.GetMembersWorkStats current 
         let list = capacities.GetTeamMembersWork current 
                    |> Seq.map(fun x -> let userWork = teamWork  
-                                                        |> List.tryFind(fun z -> z.user = x.User.displayName) 
+                                                        |> List.tryFind(fun z ->  z.user.StartsWith(x.User.displayName)) 
                                                         |> Option.defaultValue {
                                                                                     user = x.User.displayName;
                                                                                     Original = 0.0;
