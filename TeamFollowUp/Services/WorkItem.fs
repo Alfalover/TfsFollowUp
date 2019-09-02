@@ -103,8 +103,10 @@
                                            |None -> 1.0
                                            |Some x ->
                                                  capacities.GetTeamMembersWork sprint  
-                                                 |> List.find(fun m -> m.User.displayName.EndsWith(x))
-                                                 |> fun m -> m.Stats.Factor
+                                                 |> List.tryFind(fun m -> m.User.displayName.EndsWith(x))
+                                                 |> fun m -> match  m with          
+                                                                | Some x -> x.Stats.Factor
+                                                                | None -> 1.0
 
             wi |> fun y -> y.fields.``Microsoft.VSTS.Scheduling.CompletedWork`` * userFactor
 
