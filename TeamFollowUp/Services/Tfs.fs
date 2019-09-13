@@ -7,6 +7,10 @@ open System.Security
 open Session
 open Microsoft.Extensions.Configuration
    
+    //type tfsList<'T> = {
+    //      count :int 
+    //      value : 'T
+    //  }
 
     type TimeFrame = current=0 | future=1 | past=2
 
@@ -133,11 +137,106 @@ open Microsoft.Extensions.Configuration
         value : workItem[]
     }
 
+    type repository = {
+    
+        id: string
+        name: string
+    
+    }
+
+    type review = {
+        
+        displayName : string
+        uniqueName : string
+        id : string
+        imageUrl: string
+        vote : int
+    
+    }
+    
+     [<CustomEquality; CustomComparison>]
+    type pullRequest =
+        {
+            repository : repository;
+            pullRequestId : string;
+            title : string;
+            project : string;
+            status : string;
+            createdBy :TeamMember;
+            creationDate : DateTime;
+            description :string;
+            isDraft: Boolean ;
+            reviewers: review[];
+            url: string     }
+
+        override this.Equals(y) =match y with 
+                                  | :? pullRequest as other -> (this.pullRequestId = other.pullRequestId)
+                                  | _  -> false
+
+        override this.GetHashCode() = hash this.pullRequestId
+
+        interface System.IComparable with
+            member x.CompareTo y = compare x (y :?> pullRequest)
+
+    type pullRequestList = {
+        value : pullRequest[]
+        count : int
+    }
+
+    type pullRequestWorkItem = {
+        id : string
+        url: string
+    }
+
+    type pullRequestWorkItemList = {
+        value : pullRequestWorkItem[]
+        count : int
+    }
+
+
+    type threadComment = 
+            {
+                 id: int;
+                 parentCommentId: int;
+                 author:TeamMember;
+                 content: string;
+                 publishedDate: DateTime;
+                 lastUpdatedDate: DateTime;
+                 lastContentUpdatedDate: DateTime;
+                 commentType: string;
+             }
+
+    type codePosition = {
+        line:int
+        offset: int
+    }
+
+    type threadContext = {
+  
+        filePath : string
+        leftFileStart: codePosition
+        leftFileEnd: codePosition
+    }
+
+    type pullRequestThread = { 
+        id : string
+        publishedDate: DateTime
+        lastUpdatedDate: DateTime
+        comments: threadComment[]
+        threadContext: threadContext
+        status: string
+    }
+
+    type pullRequestThreadList = {
+        value: pullRequestThread[]
+        count: int   
+    }
 
     type TfsService(config : IConfiguration) = 
     
         let server = (config.Item "tfs:Url")+"/DefaultCollection/"
         let projectName = config.Item "tfs:ProjectName"
+        let repositoryId = config.Item "tfs:RepositoryId"
 
         let SprintsUri = System.Uri (server+projectName+"/_apis/work/teamsettings/iterations?api-version=4.1")
         let MemberCapacitiesUri sprint = System.Uri (server+projectName+"/_apis/work/teamsettings/iterations/" + sprint + "/capacities")
@@ -145,8 +244,15 @@ open Microsoft.Extensions.Configuration
         let WorkItemsUri queryId = System.Uri (server+projectName+"/_apis/wit/wiql/"+ queryId + "?api-version=4.1")
         let WorkItemUri (ids,fields) = System.Uri (server+projectName+"/_apis/wit/workitems?ids=" + ids + "&fields=" + fields + "&api-version=4.1")
         let WorkItemUri2 (ids) = System.Uri (server+projectName+"/_apis/wit/workitems?ids=" + ids + "&api-version=4.1")
-
-        // Burnout detailed charts
+        let pullRequestUri = System.Uri (server+projectName+"/_apis/git/pullrequests?searchcriteria.status=all&api-version=4.1")
+        let pullRequestThreadUri (pr: String) = 
+                let parm = pr.Split [|'|'|]
+                System.Uri (server+projectName+ sprintf "/_apis/git/repositories/%s/pullRequests/%s/threads?api-version=4.1" (parm.[0]) (parm.[1]))
+        let pullRequestPbiUri(pr: String) = 
+                let parm = pr.Split [|'|'|]
+                System.Uri (server+projectName+ sprintf "/_apis/git/repositories/%s/pullRequests/%s/workitems?api-version=4.1" (parm.[0]) (parm.[1]))
+       
+       // Burnout detailed charts
         let WorkItemRevisionUri id = System.Uri (server+ sprintf "/_apis/wit/workItems/%d/revisions?api-version=4.1" id)
 
         let workItemHtmlLink (id) =  server + projectName + "/_workitems?id="+ id + "&_a=edit"
@@ -170,6 +276,16 @@ open Microsoft.Extensions.Configuration
             JsonConvert.DeserializeObject<'T>(data)
         
         member val ProjectName =  config.Item "tfs:ProjectName"
+
+        member this.GetPullRequestsList session =
+            this.GetDataObject<pullRequestList>(session,pullRequestUri)
+
+        member this.GetPullRequestsThread session pullRequest =
+            this.GetDataObject<pullRequestThreadList>(session,pullRequestThreadUri pullRequest)
+
+        member this.GetPullRequestsWorkItems session pullRequest =
+               this.GetDataObject<pullRequestWorkItemList>(session,pullRequestPbiUri pullRequest)
+
 
         member this.GetSprintsList session = 
             this.GetDataObject<SprintList>(session,SprintsUri)

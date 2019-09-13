@@ -43,6 +43,13 @@
         let revRCache = tfs.GetWorkItemRevisions session.currentSession
                         |> Cache "RevCap" requestCacheModeTimeSpan config 
 
+        let prThreadCache = tfs.GetPullRequestsThread session.currentSession 
+                            |> Cache "PRThreadCap" requestCacheModeTimeSpan config
+
+        let prWorkItemCache = tfs.GetPullRequestsWorkItems session.currentSession 
+                            |> Cache "PRWorkItemCap" requestCacheModeTimeSpan config
+
+
         // Loads a default factors of 1 on every new sprint
         let factorRequest x:memberFactorList =  
                     fst memberRCache x
@@ -62,14 +69,18 @@
 
         member val updateEvent = new Event<DateTime>()
 
+        member val PullRequestList = List.empty<pullRequest> with get,set
         member val SprintsList =  List.empty<Sprint> with get,set
         member val WorkItemsList = List.empty<workItem> with get,set
+
         member val LastUpdate = DateTime.MinValue with get, set
         member val ProjectName = tfs.ProjectName
         
         member this.GetMemberCapacities sprintGuid = fst memberRCache sprintGuid  
         member this.GetTeamCapacities sprintGuid  = fst teamRCache sprintGuid
         member this.GetRevisions id = fst revRCache id
+        member this.GetPRThread pr = fst prThreadCache pr
+        member this.GetPRWorkItem pr = fst prWorkItemCache pr
 
         member this.GetTeamFactors sprintGuid = fst factorCache sprintGuid
         member this.SetTeamFactors sprintGuid newValue = snd factorCache sprintGuid newValue
@@ -81,7 +92,11 @@
                       let sprints = try
                                         tfs.GetSprintsList session
                                     with ex -> printfn "Error %s" (ex.ToString()); {count=0;value=[||]}
-        
+
+                      let pullRequests = try
+                                            tfs.GetPullRequestsList session
+                                         with ex -> printfn "Error %s" (ex.ToString()); {count=0;value=[||]}
+
                       let QueryId = config.Item "tfs:QueryId"
         
                       let wi =
@@ -95,11 +110,13 @@
                           with ex -> printfn "Error %s" (ex.ToString()); []
         
                       this.SprintsList <- sprints.value |> List.ofArray
+                      this.PullRequestList <- pullRequests.value |> List.ofArray
                       this.WorkItemsList <- wi2
                       this.LastUpdate <- DateTime.UtcNow
         
                       if(this.SprintsList.Length > 0) then
                           File.WriteAllText(Path.Combine(path,"SprintList.txt"),JsonConvert.SerializeObject(this.SprintsList))
+                          File.WriteAllText(Path.Combine(path,"PRList.txt"),JsonConvert.SerializeObject(this.PullRequestList))
                           File.WriteAllText(Path.Combine(path,"WorkItemList.txt"),JsonConvert.SerializeObject(this.WorkItemsList))
                           File.WriteAllText(Path.Combine(path,"LastUpdate.txt"),JsonConvert.SerializeObject(this.LastUpdate))
     
@@ -116,12 +133,15 @@
         
                // Load from disk last state
                try
+                    let prList = JsonConvert.DeserializeObject<pullRequest list>(File.ReadAllText(Path.Combine(path,"PRList.txt")))
                     let sprintsList = JsonConvert.DeserializeObject<Sprint list>(File.ReadAllText(Path.Combine(path,"SprintList.txt")))
                     let workItemsList = JsonConvert.DeserializeObject<workItem list>(File.ReadAllText(Path.Combine(path,"WorkItemList.txt")))
                     let lastUpdate = JsonConvert.DeserializeObject<DateTime>(File.ReadAllText(Path.Combine(path,"LastUpdate.txt")))
                     this.SprintsList <- sprintsList
                     this.WorkItemsList <- workItemsList
+                    this.PullRequestList <- prList
                     this.LastUpdate <- lastUpdate
+
 
                with ex ->  printfn "Unable to recover previous state"
                            this.SprintsList <- List.empty<Sprint>

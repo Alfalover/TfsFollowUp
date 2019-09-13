@@ -19,6 +19,36 @@ type MemberFollowupStats = {
         debtHoursFactor : double
         }
 
+type PullRequestSummary = {
+
+    pr : pullRequest
+    threads : pullRequestThread list
+    workItems : workItem list
+
+    CommentsCount : double
+}
+
+
+type PullRequestFollowupStats = {
+    
+    user :TeamMember
+    pullRequestAsReviewer: PullRequestSummary list
+
+    CreatedPr:  int
+    ReviewedPr: int
+    CommentsAverage : double 
+
+    
+    }
+
+type PRStats = {
+
+    sprint : Sprint
+    members : PullRequestFollowupStats list
+    lastUpdate : DateTime
+    project: string
+}
+
 type CompletedWork = {
 
     sprint : Sprint
@@ -114,5 +144,70 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                                 }
                  with ex ->
                     None
-                 
+
+    member this.CompletePR(pr) = 
+        let wiIds = (update.GetPRWorkItem (pr.repository.id+"|"+pr.pullRequestId)).value |> List.ofArray
+        let threads = (update.GetPRThread (pr.repository.id+"|"+pr.pullRequestId)).value |> List.ofArray
+        {
+          pr = pr 
+          threads = threads 
+          workItems = wiIds |> List.map(fun w -> update.WorkItemsList 
+                                                 |> List.tryFind (fun wi -> wi.id = w.id))
+                            |> List.choose id
+                                        
+          CommentsCount = 
+                    threads |> List.collect(fun x -> x.comments|> List.ofArray)
+                            |> List.map(fun x -> match x.commentType with
+                                                     | "text" -> 1.0
+                                                     | _ -> 0.0 )
+                            |> List.sum
+        }
+
+    member this.ComputePullRequestSummary (sprint:Sprint) : PRStats option =
+        try
+            let pullRequests = update.PullRequestList
+                                |> List.map(fun pr -> this.CompletePR(pr))
+
+            let members = update.GetMemberCapacities sprint.id
+                           |> fun x -> x.value 
+                           |> Seq.ofArray |> Seq.map(fun x -> x.teamMember)
+
+            let prbyReviewer =  members 
+                                |> Seq.map(fun x -> 
+                                                   let rprs = pullRequests |> List.filter(fun y -> (y.pr.reviewers |> Array.exists(fun j -> j.uniqueName = x.uniqueName)))
+                                                   let cprs = pullRequests |> List.filter(fun y -> (y.pr.createdBy.uniqueName = x.uniqueName))
+                                                   (x,(rprs,cprs))
+                                             )
+            let list = 
+                prbyReviewer |> Seq.map(fun x ->  
+                                              let rprs = (fst(snd x))
+                                              let cprs = (snd(snd x))
+
+                                              {user = fst x
+                                               pullRequestAsReviewer = rprs
+                                               ReviewedPr = rprs.Length
+                                               CreatedPr = cprs.Length
+                                               CommentsAverage = cprs
+                                                                  |> List.map(fun x -> x.CommentsCount)
+                                                                  |> List.average
+                                              }) 
+                             |> List.ofSeq 
+
+            Some {
+                    sprint = sprint
+                    members = list
+                    lastUpdate = update.LastUpdate
+                    project = update.ProjectName
+                }
+
+        with ex ->
+            None
+
+
+
+
+
+
+            
+            
 

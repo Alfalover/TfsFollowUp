@@ -41,6 +41,18 @@ type TeamFollowController( capacities : CapacityService, update : UpdateService,
                                                      | Some x -> new JsonResult(x)  :> ActionResult
                                                      | None ->  new EmptyResult() :> ActionResult
                                 | None -> new EmptyResult() :> ActionResult
+
+
+    [<Route("PrSummary")>]
+    member this.PrSummary() : ActionResult  = 
+                
+        update.SprintsList  |> List.tryFind(fun x -> x.attributes.timeFrame = TimeFrame.current)
+                            |> function 
+                                | Some current -> team.ComputePullRequestSummary current
+                                                  |> function 
+                                                     | Some x -> new JsonResult(x)  :> ActionResult
+                                                     | None ->  new EmptyResult() :> ActionResult
+                                | None -> new EmptyResult() :> ActionResult
     
 
     [<HttpGet>]
