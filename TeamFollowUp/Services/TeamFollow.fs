@@ -45,6 +45,11 @@ type PRStats = {
 
     sprint : Sprint
     members : PullRequestFollowupStats list
+
+    ActivePR : PullRequestSummary list
+    CompletedPR :  PullRequestSummary list
+    AbandonedPR :  PullRequestSummary list
+
     lastUpdate : DateTime
     project: string
 }
@@ -145,16 +150,36 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                  with ex ->
                     None
 
-    member this.CompletePR(pr) = 
-        let wiIds = (update.GetPRWorkItem (pr.repository.id+"|"+pr.pullRequestId)).value |> List.ofArray
-        let threads = (update.GetPRThread (pr.repository.id+"|"+pr.pullRequestId)).value |> List.ofArray
+    member this.CreatePRSummary(pr) = 
+
         {
-          pr = pr 
-          threads = threads 
-          workItems = wiIds |> List.map(fun w -> update.WorkItemsList 
-                                                 |> List.tryFind (fun wi -> wi.id = w.id))
-                            |> List.choose id
-                                        
+            pr = pr 
+            threads = [] 
+            workItems = []             
+            CommentsCount = 0.0
+        }
+
+    member this.CompletePRwithWorkItems(pr) = 
+
+        let wiIds = try
+                              (update.GetPRWorkItem (pr.pr.repository.id+"|"+pr.pr.pullRequestId)).value |> List.ofArray
+                          with ex ->
+                              []
+
+        {pr with workItems = wiIds |> List.map(fun w -> update.WorkItemsList |> List.tryFind (fun wi -> wi.id = w.id))
+                                   |> List.choose id
+                       }
+
+    member this.CompletePRwithThreads(prs) = 
+
+        let threads = try 
+                        (update.GetPRThread (prs.pr.repository.id+"|"+prs.pr.pullRequestId)).value |> List.ofArray
+                      with ex ->
+                        []
+
+        {
+          prs with 
+          threads = threads                                
           CommentsCount = 
                     threads |> List.collect(fun x -> x.comments|> List.ofArray)
                             |> List.map(fun x -> match x.commentType with
@@ -163,10 +188,56 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                             |> List.sum
         }
 
-    member this.ComputePullRequestSummary (sprint:Sprint) : PRStats option =
+    member this.ComputePullRequestReviewSummary (sprint:Sprint) : PRStats option =
         try
             let pullRequests = update.PullRequestList
-                                |> List.map(fun pr -> this.CompletePR(pr))
+                                |> List.map(fun pr -> pr |> this.CreatePRSummary |> this.CompletePRwithWorkItems)
+                                |> List.filter(fun pr -> pr.workItems |> List.exists(fun x -> x.fields.``System.IterationPath`` = sprint.path))
+
+
+            let members = update.GetMemberCapacities sprint.id
+                           |> fun x -> x.value 
+                           |> Seq.ofArray |> Seq.map(fun x -> x.teamMember)
+
+            let prbyReviewer =  members 
+                                |> Seq.map(fun x -> 
+                                                   let rprs = pullRequests |> List.filter(fun y -> (y.pr.reviewers |> Array.exists(fun j -> j.uniqueName = x.uniqueName)))
+                                                   (x,rprs)
+                                             )
+            let list = 
+                prbyReviewer |> Seq.map(fun x ->  
+                                              let rprs = snd x
+                                              {user = fst x
+                                               pullRequestAsReviewer = rprs
+                                               ReviewedPr = rprs.Length
+                                               CreatedPr = 0
+                                               CommentsAverage = 0.0
+                                              }) 
+                             |> Seq.sortByDescending(fun x -> x.ReviewedPr)
+                             |> List.ofSeq 
+
+            Some {
+                    sprint = sprint
+                    members = list
+                    lastUpdate = update.LastUpdate
+                    project = update.ProjectName
+                    ActivePR = pullRequests  |> List.filter(fun pr -> pr.pr.status = "active")
+                    CompletedPR = pullRequests |> List.filter(fun pr -> pr.pr.status = "completed")
+                    AbandonedPR = pullRequests |> List.filter(fun pr -> pr.pr.status = "abandoned")
+
+                }
+        with ex ->
+             None
+
+    member this.ComputePullRequestCreatedSummary (sprint:Sprint) : PRStats option =
+        try
+            let pullRequests = update.PullRequestList
+                                |> List.map(fun pr -> pr |> this.CreatePRSummary
+                                                         |> this.CompletePRwithWorkItems 
+                                                         |> this.CompletePRwithThreads)
+
+                                |> List.filter(fun pr -> pr.workItems |> List.exists(fun x -> x.fields.``System.IterationPath`` = sprint.path))
+
 
             let members = update.GetMemberCapacities sprint.id
                            |> fun x -> x.value 
@@ -187,9 +258,11 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                                                pullRequestAsReviewer = rprs
                                                ReviewedPr = rprs.Length
                                                CreatedPr = cprs.Length
-                                               CommentsAverage = cprs
-                                                                  |> List.map(fun x -> x.CommentsCount)
-                                                                  |> List.average
+                                               CommentsAverage = 
+                                                                 match cprs.Length with
+                                                                  | 0 -> 0.0
+                                                                  | _ -> cprs |> List.map(fun x -> x.CommentsCount)
+                                                                              |> List.average
                                               }) 
                              |> List.ofSeq 
 
@@ -198,6 +271,9 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                     members = list
                     lastUpdate = update.LastUpdate
                     project = update.ProjectName
+                    ActivePR = pullRequests  |> List.filter(fun pr -> pr.pr.status = "active")
+                    CompletedPR = pullRequests |> List.filter(fun pr -> pr.pr.status = "completed")
+                    AbandonedPR = pullRequests |> List.filter(fun pr -> pr.pr.status = "abandoned")
                 }
 
         with ex ->

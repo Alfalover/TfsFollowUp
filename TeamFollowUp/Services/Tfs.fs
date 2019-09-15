@@ -167,7 +167,7 @@ open Microsoft.Extensions.Configuration
             description :string;
             isDraft: Boolean ;
             reviewers: review[];
-            url: string     }
+            Html : string}
 
         override this.Equals(y) =match y with 
                                   | :? pullRequest as other -> (this.pullRequestId = other.pullRequestId)
@@ -256,6 +256,7 @@ open Microsoft.Extensions.Configuration
         let WorkItemRevisionUri id = System.Uri (server+ sprintf "/_apis/wit/workItems/%d/revisions?api-version=4.1" id)
 
         let workItemHtmlLink (id) =  server + projectName + "/_workitems?id="+ id + "&_a=edit"
+        let pullRequestLink (id) = server + projectName + (sprintf "/_git/GR0009/pullrequest/%s?_a=overview" id)
 
         let requestFields = "System.AreaPath,System.IterationPath,System.WorkItemType," + 
                             "System.State,System.Title,System.AssignedTo,System.CreatedDate," + 
@@ -277,14 +278,20 @@ open Microsoft.Extensions.Configuration
         
         member val ProjectName =  config.Item "tfs:ProjectName"
 
-        member this.GetPullRequestsList session =
+        member this.GetPullRequestsList session : pullRequestList =
             this.GetDataObject<pullRequestList>(session,pullRequestUri)
+            |> fun prl  ->
+                {
+                    count = prl.count
+                    value = prl.value |> Array.map(fun (x) -> {x with Html = (pullRequestLink x.pullRequestId) })
+                }
 
         member this.GetPullRequestsThread session pullRequest =
             this.GetDataObject<pullRequestThreadList>(session,pullRequestThreadUri pullRequest)
 
         member this.GetPullRequestsWorkItems session pullRequest =
                this.GetDataObject<pullRequestWorkItemList>(session,pullRequestPbiUri pullRequest)
+               
 
 
         member this.GetSprintsList session = 
