@@ -192,7 +192,7 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
         try
             let pullRequests = update.PullRequestList
                                 |> List.map(fun pr -> pr |> this.CreatePRSummary |> this.CompletePRwithWorkItems)
-                                |> List.filter(fun pr -> pr.workItems |> List.exists(fun x -> x.fields.``System.IterationPath`` = sprint.path))
+                                |> List.filter(fun pr -> pr.pr.creationDate >= sprint.attributes.startDate.Value || (pr.pr.closedDate.HasValue = false) || pr.pr.closedDate.Value >= sprint.attributes.startDate.Value)
 
 
             let members = update.GetMemberCapacities sprint.id

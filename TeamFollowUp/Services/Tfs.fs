@@ -164,6 +164,7 @@ open Microsoft.Extensions.Configuration
             status : string;
             createdBy :TeamMember;
             creationDate : DateTime;
+            closedDate : Nullable<DateTime>;
             description :string;
             isDraft: Boolean ;
             reviewers: review[];
