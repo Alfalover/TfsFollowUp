@@ -4,6 +4,32 @@ open System
 open Xunit
 open FSharp.Control.Reactive
 open FSharp.Control.Reactive
+open System.Threading
+
+
+[<Fact>]
+let ``Async subject test to allow request cache repo store`` ()=
+
+    let mutable count = 0
+
+    let sb = Subject.broadcast
+
+    let subs = sb  |> Observable.throttle(TimeSpan.FromSeconds(0.5))
+                   |> Observable.subscribe(fun (c,f) -> count <- count + 1 )
+
+
+
+    sb.OnNext((1,1))
+    sb.OnNext((1,1))
+    Thread.Sleep(1000)    
+    sb.OnNext((1,1))
+    sb.OnNext((1,1))
+    sb.OnNext((1,1))
+
+    Thread.Sleep(1000)
+
+    Assert.Equal(2,count)
+
 
 [<Fact>]
 let ``Reactive Extensions test & learning`` ()=

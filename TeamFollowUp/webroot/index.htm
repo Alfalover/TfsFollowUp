@@ -4,12 +4,12 @@
     <title>Tfs Toni FollowUp tools</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	<link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
     <script src="jquery-3.3.1.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
-	<script src="tools.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="Chart.bundle.min.js"></script>
+    <script src="tools.js"></script>
 
     <script type="text/javascript">
         jQuery(function ($) {
@@ -24,186 +24,190 @@
 
     <script>
 
-		globalValues = { pbi : {}, bug : {}, team : {} };
-		
-		function updateGlobals() {
-		
-		    
-			if (globalValues.pbi.stats != undefined
-				&& globalValues.bug.stats != undefined 
-				&& globalValues.team.debt != undefined ) {
-		
-				var Effort = parseFloat(globalValues.pbi.Effort) + parseFloat(globalValues.bug.Effort);
-				var Original = parseFloat(globalValues.pbi.stats.Original) + parseFloat(globalValues.bug.stats.Original);
-				var completedWork = parseFloat(globalValues.pbi.stats.Completed) + parseFloat(globalValues.bug.stats.Completed);
-				var remainingWork= parseFloat(globalValues.pbi.stats.Remaining) + parseFloat(globalValues.bug.stats.Remaining);
-				var remainingTime=  parseFloat(globalValues.team.capacity.CapacitySprint) -  parseFloat(globalValues.team.capacity.CapacityUntilToday)
-				
-				var health = 100 * remainingTime/remainingWork;
-				
-				var partRemPbi = 100* parseFloat(globalValues.pbi.stats.Remaining)/remainingWork
-				var partRemBug = 100* parseFloat(globalValues.bug.stats.Remaining)/remainingWork
-				
-				var partComplPbi = 100* parseFloat(globalValues.pbi.stats.Completed)/completedWork
-				var partComplBug = 100* parseFloat(globalValues.bug.stats.Completed)/completedWork
-		
-				var partEffortPbi = 100* parseFloat(globalValues.pbi.Effort)/Effort
-				var partEffortBug = 100* parseFloat(globalValues.bug.Effort)/Effort
-				
-				var partOriginalPbi = 100* parseFloat(globalValues.pbi.stats.Original)/Original
-				var partOriginalBug = 100* parseFloat(globalValues.bug.stats.Original)/Original
-		
-				
-		
-				$("#globalStats tr:last")
-                            .after("<tr>" +
-                                "<td>" + remainingWork  + "</td>" +
-                                "<td>" + remainingTime  + "</remaining></td>" +
-                                "</tr>");
-								
-				$("#pbiStats tr:last")
-                      .after("<tr>" +
-                          "<td><original class=\"col-md-12\"> "  + Number(partOriginalPbi).toFixed(1) + "% (" + Number(partEffortPbi).toFixed(1) + "%)</original></td>" +
-                          "<td><remaining class=\"col-md-12\"> " + Number(partRemPbi).toFixed(1) + "%</remaining></td>" +
-                          "<td><completed class=\"col-md-12\"> " + Number(partComplPbi).toFixed(1) + "%</completed></td>" +
-                          "</tr>");
-				
-				$("#bugStats tr:last")
-                      .after("<tr>" +
-                          "<td><original class=\"col-md-12\"> "  + Number(partOriginalBug).toFixed(1) + "% (" + Number(partEffortBug).toFixed(1) + "%)</original></td>" +
-                          "<td><remaining class=\"col-md-12\"> " + Number(partRemBug).toFixed(1) + "%</remaining></td>" +
-                          "<td><completed class=\"col-md-12\"> " + Number(partComplBug).toFixed(1) + "%</completed></td>" +
-                          "</tr>");
-				
-								
-				$("#health").html( progressBar(0, 100,health,80,120,90,110) );
-							
-								
-			}
-		
-		}
+        globalValues = { pbi: {}, bug: {}, team: {} };
+
+        function updateGlobals() {
+
+
+            if (globalValues.pbi.stats != undefined
+                && globalValues.bug.stats != undefined
+                && globalValues.team.debt != undefined) {
+
+                var Effort = parseFloat(globalValues.pbi.Effort) + parseFloat(globalValues.bug.Effort);
+                var Original = parseFloat(globalValues.pbi.stats.Original) + parseFloat(globalValues.bug.stats.Original);
+                var completedWork = parseFloat(globalValues.pbi.stats.Completed) + parseFloat(globalValues.bug.stats.Completed);
+                var remainingWork = parseFloat(globalValues.pbi.stats.Remaining) + parseFloat(globalValues.bug.stats.Remaining);
+                var remainingTime = parseFloat(globalValues.team.capacity.CapacitySprint) - parseFloat(globalValues.team.capacity.CapacityUntilToday)
+
+                var health = 100 * remainingTime / remainingWork;
+
+                var partRemPbi = 100 * parseFloat(globalValues.pbi.stats.Remaining) / remainingWork
+                var partRemBug = 100 * parseFloat(globalValues.bug.stats.Remaining) / remainingWork
+
+                var partComplPbi = 100 * parseFloat(globalValues.pbi.stats.Completed) / completedWork
+                var partComplBug = 100 * parseFloat(globalValues.bug.stats.Completed) / completedWork
+
+                var partEffortPbi = 100 * parseFloat(globalValues.pbi.Effort) / Effort
+                var partEffortBug = 100 * parseFloat(globalValues.bug.Effort) / Effort
+
+                var partOriginalPbi = 100 * parseFloat(globalValues.pbi.stats.Original) / Original
+                var partOriginalBug = 100 * parseFloat(globalValues.bug.stats.Original) / Original
+
+
+
+                $("#globalStats tr:last")
+                    .after("<tr>" +
+                        "<td>" + remainingWork + "</td>" +
+                        "<td>" + remainingTime + "</remaining></td>" +
+                        "</tr>");
+
+                $("#pbiStats tr:last")
+                    .after("<tr>" +
+                        "<td><original class=\"col-md-12\"> " + Number(partOriginalPbi).toFixed(1) + "% (" + Number(partEffortPbi).toFixed(1) + "%)</original></td>" +
+                        "<td><remaining class=\"col-md-12\"> " + Number(partRemPbi).toFixed(1) + "%</remaining></td>" +
+                        "<td><completed class=\"col-md-12\"> " + Number(partComplPbi).toFixed(1) + "%</completed></td>" +
+                        "</tr>");
+
+                $("#bugStats tr:last")
+                    .after("<tr>" +
+                        "<td><original class=\"col-md-12\"> " + Number(partOriginalBug).toFixed(1) + "% (" + Number(partEffortBug).toFixed(1) + "%)</original></td>" +
+                        "<td><remaining class=\"col-md-12\"> " + Number(partRemBug).toFixed(1) + "%</remaining></td>" +
+                        "<td><completed class=\"col-md-12\"> " + Number(partComplBug).toFixed(1) + "%</completed></td>" +
+                        "</tr>");
+
+
+                $("#health").html(progressBar(0, 100, health, 80, 120, 90, 110));
+
+
+            }
+
+        }
 
         $(document).ready(function () {
 
-			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
-			$("#bottomNavbar").load("bottomMenu.htm",function() { updateBoostrap(); });
-		
-		
-			$.ajax({ url: "/api/TeamFollow/Summary", context: document.body })
-            
-            
+            $("#navbar").load("menu.htm", function () { updateBoostrap(); });
+            $("#bottomNavbar").load("bottomMenu.htm", function () { updateBoostrap(); });
+
+
+            $.ajax({ url: "/api/TeamFollow/Summary", context: document.body })
+
+
                 .done(function (data) {
-            
-            
-                    var objectList = JSON.parse(data);
-            
+
+
+                    var objectList = data; //JSON.parse(data);
+
                     var sprintName = objectList.sprint.name;
-					
-					globalValues.team = objectList;
-					
-					var remainingTime=  parseFloat(globalValues.team.capacity.CapacitySprint) -  parseFloat(globalValues.team.capacity.CapacityUntilToday)
-            
+
+                    globalValues.team = objectList;
+
+                    var remainingTime = parseFloat(globalValues.team.capacity.CapacitySprint) - parseFloat(globalValues.team.capacity.CapacityUntilToday)
+
                     $("#sprintId").text(sprintName)
                     $("#sprintStart").text((new Date(objectList.sprint.attributes.startDate)).toLocaleDateString())
                     $("#sprintEnd").text((new Date(objectList.sprint.attributes.finishDate)).toLocaleDateString())
                     $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
                     $("#projectName").text(objectList.project)
-					
-					$("#teamStatsCmp tr:last")
-                            .after("<tr>" +
-                                "<td>" + globalValues.team.capacity.CapacitySprint  + "</td>" +
-                                "<td>" + globalValues.team.capacity.CapacityUntilToday + "</td>" +
-								"<td>" + globalValues.team.work.Completed + "</td>" +
-								"<td>" + remainingTime + "</td>" +								
-								"<td>" + progressBar(0, 100,globalValues.team.completeness,97,120,95,140)  + "</td>" +
-                                "</tr>");
-					
-					
-					
-					console.log("team")
-					updateBoostrap();
-					updateGlobals();
+
+                    $("#teamStatsCmp tr:last")
+                        .after("<tr>" +
+                            "<td>" + globalValues.team.capacity.CapacitySprint + "</td>" +
+                            "<td>" + globalValues.team.capacity.CapacityUntilToday + "</td>" +
+                            "<td>" + globalValues.team.work.Completed + "</td>" +
+                            "<td>" + remainingTime + "</td>" +
+                            "<td>" + progressBar(0, 100, globalValues.team.completeness, 97, 120, 95, 140) + "</td>" +
+                            "</tr>");
+
+
+
+                    console.log("team")
+                    updateBoostrap();
+                    updateGlobals();
                 });
-			
-			$.ajax({ url: "/api/WorkFollow/Summary?wtype=Product%20Backlog%20Item", context: document.body })
+
+            $.ajax({ url: "/api/WorkFollow/Summary?wtype=Product%20Backlog%20Item", context: document.body })
 
 
                 .done(function (data) {
 
 
-                    var objectList = JSON.parse(data);
+                    var objectList = data; //JSON.parse(data);
 
                     globalValues.pbi.Effort = objectList.summary.Effort;
-					globalValues.pbi.count  = objectList.summary.Count;
-					globalValues.pbi.stats  = objectList.summary.Stats;
-					globalValues.pbi.cmp    = objectList.summary.Cmp;		
+                    globalValues.pbi.count = objectList.summary.Count;
+                    globalValues.pbi.stats = objectList.summary.Stats;
+                    globalValues.pbi.cmp = objectList.summary.Cmp;
 
-					$("#pbiStats tr:last")
-                            .after("<tr>" +
-                                "<td><original class=\"col-md-12\"> "  + objectList.summary.Stats.Original + "(" + objectList.summary.Effort + ")</original></td>" +
-                                "<td><remaining class=\"col-md-12\"> " + objectList.summary.Stats.Remaining + "</remaining></td>" +
-                                "<td><completed class=\"col-md-12\"> " + objectList.summary.Stats.Completed + "</completed></td>" +
-                                "</tr>");		
+                    $("#pbiStats tr:last")
+                        .after("<tr>" +
+                            "<td><original class=\"col-md-12\"> " + objectList.summary.Stats.Original + "(" + objectList.summary.Effort + ")</original></td>" +
+                            "<td><remaining class=\"col-md-12\"> " + objectList.summary.Stats.Remaining + "</remaining></td>" +
+                            "<td><completed class=\"col-md-12\"> " + objectList.summary.Stats.Completed + "</completed></td>" +
+                            "</tr>");
 
-					$("#pbiStatsCmp tr:last")
-                            .after("<tr>" +
-                                "<td>" + progressBar(0, 100,objectList.summary.StatsCmp.Progress)  + "</td>" +
-                                "<td>" + progressBar(-100, 100, objectList.summary.StatsCmp.Deviation ,-30,30,-15,15)  + "</td>" +
-                                "</tr>");
-					
-					var labels = getStateLabels();
-					var colors = getStateColors();
-					var dataset= mapLabelDataset(labels,objectList.summary.StateCount);
-					
-					createPieChart("statePie","workItems",dataset,labels,colors);
-					console.log("pbi");
-      
-					updateBoostrap();
-					updateGlobals();
-            });
-			
-			$.ajax({ url: "/api/WorkFollow/Summary?wtype=Bug", context: document.body })
+                    $("#pbiStatsCmp tr:last")
+                        .after("<tr>" +
+                            "<td>" + progressBar(0, 100, objectList.summary.StatsCmp.Progress) + "</td>" +
+                            "<td>" + progressBar(-100, 100, objectList.summary.StatsCmp.Deviation, -30, 30, -15, 15) + "</td>" +
+                            "</tr>");
+
+                    var labels = getStateLabels();
+                    var colors = getStateColors();
+                    var dataset = mapLabelDataset(labels, objectList.summary.StateCount);
+
+                    createPieChart("statePie", "workItems", dataset, labels, colors);
+                    console.log("pbi");
+
+                    updateBoostrap();
+                    updateGlobals();
+                });
+
+            $.ajax({ url: "/api/WorkFollow/Summary?wtype=Bug", context: document.body })
 
 
                 .done(function (data) {
 
 
-                    var objectList = JSON.parse(data);
+                    var objectList = data; //JSON.parse(data);
 
                     globalValues.bug.Effort = objectList.summary.Effort;
-					globalValues.bug.count  = objectList.summary.Count;
-					globalValues.bug.stats  = objectList.summary.Stats;
-					globalValues.bug.cmp    = objectList.summary.Cmp;	
-					
-					$("#bugStats tr:last")
-                            .after("<tr>" +
-                                "<td><original class=\"col-md-12\"> "  + objectList.summary.Stats.Original + "(" + objectList.summary.Effort + ")</original></td>" +
-                                "<td><remaining class=\"col-md-12\"> " + objectList.summary.Stats.Remaining + "</remaining></td>" +
-                                "<td><completed class=\"col-md-12\"> " + objectList.summary.Stats.Completed + "</completed></td>" +
-                                "</tr>");	
-								
-					$("#bugStatsCmp tr:last")
-                            .after("<tr>" +
-                                "<td>" + progressBar(0, 100,objectList.summary.StatsCmp.Progress)  + "</td>" +
-                                "<td>" + progressBar(-100, 100, objectList.summary.StatsCmp.Deviation ,-30,30,-15,15)  + "</td>" +
-                                "</tr>");
+                    globalValues.bug.count = objectList.summary.Count;
+                    globalValues.bug.stats = objectList.summary.Stats;
+                    globalValues.bug.cmp = objectList.summary.Cmp;
 
-					var labels = getStateLabels();
-					var colors = getStateColors();
-					var dataset= mapLabelDataset(labels,objectList.summary.StateCount);										
-					
-					createPieChart("statePie","Bugs",dataset,labels,colors);
-					console.log("bugs");
-      
-					updateBoostrap();
-					updateGlobals();
-            });
+                    $("#bugStats tr:last")
+                        .after("<tr>" +
+                            "<td><original class=\"col-md-12\"> " + objectList.summary.Stats.Original + "(" + objectList.summary.Effort + ")</original></td>" +
+                            "<td><remaining class=\"col-md-12\"> " + objectList.summary.Stats.Remaining + "</remaining></td>" +
+                            "<td><completed class=\"col-md-12\"> " + objectList.summary.Stats.Completed + "</completed></td>" +
+                            "</tr>");
+
+                    $("#bugStatsCmp tr:last")
+                        .after("<tr>" +
+                            "<td>" + progressBar(0, 100, objectList.summary.StatsCmp.Progress) + "</td>" +
+                            "<td>" + progressBar(-100, 100, objectList.summary.StatsCmp.Deviation, -30, 30, -15, 15) + "</td>" +
+                            "</tr>");
+
+                    var labels = getStateLabels();
+                    var colors = getStateColors();
+                    var dataset = mapLabelDataset(labels, objectList.summary.StateCount);
+
+                    createPieChart("statePie", "Bugs", dataset, labels, colors);
+                    console.log("bugs");
+
+                    updateBoostrap();
+                    updateGlobals();
+                });
 
 
-			updateBoostrap();
-			console.log("document loaded");
+            updateBoostrap();
+            console.log("document loaded");
 
         });
+
+
+
+
 
 
 
@@ -211,6 +215,29 @@
 
             console.log("window loaded");
 
+            $.ajax({ url: "/api/update/extra", context: document.body })
+
+
+                .done(function (data) {
+
+                    ncanm = [anStep("A", "#netCoreA", { opacity: "+=1", left: "+=450" }, 800),
+                    anStep("A", "#netCoreL", { opacity: "+=1", left: "+=525" }, 400),
+                    anStep("T", null, null, 1000),
+                    anStep("A", "#netCoreA", { opacity: "-=1" }, 800),
+                    anStep("A", "#netCoreL", { opacity: "-=1" }, 800),
+                    ]
+
+                    anm = [anStep("A", "#dockerW", { left: "+=300" }, 1400),
+                    anStep("A", "#dockerT", { opacity: "+=1" }, 500),
+                    anStep("C", null, function () { runAnim(ncanm); }, 0),
+                    anStep("T", null, null, 1500),
+                    anStep("A", "#dockerW", { opacity: "-=1" }, 2500),
+                    ]
+
+                    runAnim(anm);
+
+
+                });
         });
 
     </script>
@@ -224,127 +251,165 @@
             <h1 style="margin-top:25%" class="centered text-center">loading...</h1>
         </div>
     </div>
-	
-	<div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
 
-	
+    <div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
+
+
     <div class="container">
-       
-	    <div class="row" >
-			
-			<div class="col-lg-6">
-				<h2 class="marginleft" id="sprintId">Sprint xxx</h2>
-			</div>
-			<div class="col-lg-6 vcenter">
-				<sprintDesc>
-					<h4 class="pull-right marginright" id="sprintEnd"></h4>
-					<h4 class="pull-right marginright"> To: </h4>
-					<h4 class="pull-right marginright" id="sprintStart"></h4>
-					<h4 class="pull-right marginright"> From: </h4>
-				</sprintDesc>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-lg-4">
-				<h3>WorkItems</h3>
-				<div class="table-responsive">
-                <table id="pbiStats" class="table">
-                    <thead>
-                        <tr>
-                            <th>Effort</th>
-                            <th>Remaining</th>
-                            <th>Completed     </th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-				</div>
-			</div>
-			<div class="col-lg-4">
-				<h3>Health</h3>
-				<div id="health"></div>
-				<div class="table-responsive">
-				    <table id="globalStats" class="table">
-                    <thead>
-                        <tr>
-                            <th>Remaining Work</th>
-                            <th>Remaining Time</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-					</table>
-				</div>
-			</div>
-			<div class="col-lg-4">
-				<h3>Bugs</h3>
-					<div class="table-responsive">
-				    <table id="bugStats" class="table">
-                    <thead>
-                        <tr>
-                            <th>Effort</th>
-                            <th>Remaining</th>
-                            <th>Completed     </th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-					</table>
-					</div>
-			
-			</div>
-		</div>
-		<div class="row">
-				<div class="col-lg-4">
-					<div class="table-responsive">
-				    <table id="pbiStatsCmp" class="table">
-                    <thead>
-                        <tr>
-                            <th>Progress</th>
-                            <th>Deviation</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-					</table>
-					</div>
-				</div>
-				<div class="col-lg-4">
-						<canvas id="statePie"/>
-				</div>
-				<div class="col-lg-4">
-					<div class="table-responsive">
-				    <table id="bugStatsCmp" class="table">
-                    <thead>
-                        <tr>
-                            <th>Progress</th>
-                            <th>Deviation</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-					</table>
-					</div>
-				</div>
-		</div>
-		<div class="row">
-			<div class="col-lg-12">
-				<h3>Team</h3>
-				<div class="table-responsive">
-				    <table id="teamStatsCmp" class="table">
-                    <thead>
-                        <tr>
-                            <th>Strint Total</th>
-                            <th>Executed</th>
-							<th>Reported</th>
-							<th>Remaining</th>
-							<th>Completeness</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-					</table>
-					</div>
-			</div>
-		</div>
+
+        <div class="row">
+
+            <div class="col-lg-6">
+                <h2 class="marginleft" id="sprintId">Sprint xxx</h2>
+            </div>
+            <div class="col-lg-6 vcenter">
+                <sprintDesc>
+                    <h4 class="pull-right marginright" id="sprintEnd"></h4>
+                    <h4 class="pull-right marginright"> To: </h4>
+                    <h4 class="pull-right marginright" id="sprintStart"></h4>
+                    <h4 class="pull-right marginright"> From: </h4>
+                </sprintDesc>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+                <h3>WorkItems</h3>
+                <div class="table-responsive">
+                    <table id="pbiStats" class="table">
+                        <thead>
+                            <tr>
+                                <th>Effort</th>
+                                <th>Remaining</th>
+                                <th>Completed     </th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <h3>Health</h3>
+                <div id="health"></div>
+                <div class="table-responsive">
+                    <table id="globalStats" class="table">
+                        <thead>
+                            <tr>
+                                <th>Remaining Work</th>
+                                <th>Remaining Time</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <h3>Bugs</h3>
+                <div class="table-responsive">
+                    <table id="bugStats" class="table">
+                        <thead>
+                            <tr>
+                                <th>Effort</th>
+                                <th>Remaining</th>
+                                <th>Completed     </th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="table-responsive">
+                    <table id="pbiStatsCmp" class="table">
+                        <thead>
+                            <tr>
+                                <th>Progress</th>
+                                <th>Deviation</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <canvas id="statePie" />
+            </div>
+            <div class="col-lg-4">
+                <div class="table-responsive">
+                    <table id="bugStatsCmp" class="table">
+                        <thead>
+                            <tr>
+                                <th>Progress</th>
+                                <th>Deviation</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <h3>Team</h3>
+                <div class="table-responsive">
+                    <table id="teamStatsCmp" class="table">
+                        <thead>
+                            <tr>
+                                <th>Strint Total</th>
+                                <th>Executed</th>
+                                <th>Reported</th>
+                                <th>Remaining</th>
+                                <th>Completeness</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom"/>
+    <div id="dockerW"
+         style="height:auto;
+		 		padding:0px 0px;
+		 		text-align:center;
+		 		top:50%;
+		 		left:-15%;
+		 		position:absolute;float:right;">
+
+        <image src="docker.gif" width="130px" />
+        <div id="dockerT" style="opacity: 0;
+					font-size: 18px;
+					text-shadow: 1px 1px 3px #e6c108;
+				">Now runs on Docker !</div>
+    </div>
+
+    <div id="netCoreA" style="opacity: 0;
+							  font-size: 88px;
+							  text-shadow: 1px 1px 3px #e6c108;
+							  height:auto;
+							  padding:0px 0px;
+							  text-align:center;
+							  top:60%;
+							  left:-15%;
+							  position:absolute;float:right;
+							 ">&</div>
+
+    <div id="netCoreL" style="opacity: 0;
+							  height:auto;
+							  padding:0px 0px;
+							  text-align:center;
+							  top:60%;
+							  left:-15%;
+							  position:absolute;float:right;
+							 ">
+        <image src="netcorelogo.png" width="130px" />
+    </div>
+
+
+    <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom" />
 
 
 </body>

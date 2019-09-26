@@ -46,8 +46,15 @@ open System
                           Console.WriteLine(config.Item "credentials:user")
                           config.Item "credentials:user"
 
-            printfn "Enter password:"
-            let pass = GetPassword() 
+           
+            let pass = String.IsNullOrWhiteSpace(config.Item "credentials:password")
+                        |> function
+                           | true -> 
+                                printfn "Enter password:"
+                                GetPassword() 
+                           | false -> 
+                                (new NetworkCredential("", config.Item "credentials:password")).SecurePassword
+                            
 
             let session = { credentials= GetCredential user pass }       
             this.currentSession <- session

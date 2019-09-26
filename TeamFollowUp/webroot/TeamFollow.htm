@@ -4,10 +4,10 @@
     <title>Team Follow up</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="jquery-3.3.1.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="bootstrap.min.js"></script>
     <script src="tools.js"></script>
 
     <script type="text/javascript">
@@ -31,11 +31,42 @@
                 .done(function (data) { location.reload(); })
         }
 
+        function createPodiumAnimation() {
+
+            $(".podium").each(function (i, obj) {
+
+                console.log("itemsIn");
+                var diff = 100 - obj.attributes.xtop.nodeValue;
+                obj.style.display = "block";
+                var anm = [anStep("A", "#" + obj.id, { top: "-=" + diff + "%" }, 1400)]
+
+                runAnim(anm);
+
+
+            });
+
+        }
+
+        function createPodium(index, x, num) {
+
+            var width = 100.0 / (num * 2)
+            var height = 15 + (2 * (num - index));
+            var top = 100 - height;
+            var left = ((width + (width / 2)) * index) + (width / 2);
+
+            podium = '<div id="podium' + index + '" class="podium" xtop="' + top + '" style=" height: ' + height + '%;width: ' + width + '%; top: 100%; left: ' + left + '%;">'
+                + '<div id="dockerT" class="podiumText">' + (index + 1) + '</div>'
+                + '<div id="dockerT" class="podiumText">' + x.user.displayName + '</div></div>'
+
+            $(".container").after(podium);
+
+        }
+
         function createPopover(index, member, factor, sprintId) {
 
             rows = ""
 
-            member.work.Fields[0].Tasks.forEach(function (x) {
+            member.work.Tasks.forEach(function (x) {
 
                 rows += '<tr><td>' + x.id + '</td>' +
                     '    <td><a target="_blank" rel="noopener noreferrer" href="' + encodeURI(x.Html) + '" data-toggle="tooltip" title="' + x.fields["System.Title"] + '">' + x.fields["System.Title"] + '</a></td>' +
@@ -66,9 +97,9 @@
                 '            <td></td>              ' +
                 '            <td>Totals:</td>		 	    ' +
                 '            <td></td>		 	    ' +
-                '            <td>' + member.work.Fields[0].Original + '</td>' +
-                '            <td>' + member.work.Fields[0].Remaining + '</td>' +
-                '            <td>' + member.work.Fields[0].Completed + '</td>' +
+                '            <td>' + member.work.Original + '</td>' +
+                '            <td>' + member.work.Remaining + '</td>' +
+                '            <td>' + member.work.Completed + '</td>' +
                 '        </tr>                      ' +
                 '    </tfoot>                       ' +
                 '</table>                           ' +
@@ -99,7 +130,7 @@
                 .done(function (data) {
 
 
-                    var objectList = JSON.parse(data);
+                    var objectList = data; //JSON.parse(data);
 
                     var sprintName = objectList.sprint.name;
 
@@ -117,17 +148,17 @@
                             var row0 = "<tr>" +
                                 "<td><img style=\"width:25px; height:25px\" class=\"vcenter img-circle\" src=" + x.user.imageUrl + " /></td>" +
                                 "<td><name class=\"col-md-12\"> " + x.user.displayName + "</name></td>" +
-                                "<td><original class=\"col-md-12\"> " + Number(x.work.Fields[0].Original).toFixed(1) + "</original></td>" +
-                                "<td><Remaining class=\"col-md-12\"> " + Number(x.work.Fields[0].Remaining).toFixed(1) + "</Remaining></td>" +
+                                "<td><original class=\"col-md-12\"> " + Number(x.work.Original).toFixed(1) + "</original></td>" +
+                                "<td><Remaining class=\"col-md-12\"> " + Number(x.work.Remaining).toFixed(1) + "</Remaining></td>" +
                                 "<td><a id=\"cplt" + index + "\" href=\"#\" type=\"button\" data-toggle=\"popover\" data-container=\"body\" data-placement=\"right\" type=\"button\" data-html=\"true\"> "
 
                             var row1 = ""
                             if (x.factor != 1) {
-                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Fields[0].Completed).toFixed(1) + "("
+                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Completed).toFixed(1) + "("
                                     + x.CompletedFactor.toFixed(1)
                                     + ")</Completed></a></td>"
                             } else {
-                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Fields[0].Completed).toFixed(1) + "</Completed></a></td>"
+                                row1 = "<Completed  class=\"col-md-12\"> " + Number(x.work.Completed).toFixed(1) + "</Completed></a></td>"
                             }
                             var row2 = "<td><CapacityUntilToday class=\"col-md-12\"> " + x.capacity.Stats.CapacityUntilToday + "</CapacityUntilToday></td>"
 
@@ -153,12 +184,15 @@
 
                             createPopover(index, x, x.capacity.Stats.Factor.toFixed(4), objectList.sprint.id);
 
+                            //createPodium(index, x, objectList.members.length);
+
                         }
 
                         index++;
 
                     })
                     updateBoostrap();
+                    //createPodiumAnimation();
                 });
 
 
@@ -219,10 +253,13 @@
                 <tbody></tbody>
             </table>
         </div>
+        <div class="hide" id="popover-contents" />
+
     </div>
 
 
-    <div class="hide" id="popover-contents" />
+
+    <div></div>
     <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom" />
 
 </body>

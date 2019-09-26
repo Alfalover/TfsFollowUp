@@ -1,0 +1,141 @@
+﻿<html>
+
+<head>
+    <title>Team PRformance</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="tools.js"></script>
+
+    <script type="text/javascript">
+        jQuery(function ($) {
+            $(document).ajaxStop(function () {
+                $("#ajax_loader").hide();
+            });
+            $(document).ajaxStart(function () {
+                $("#ajax_loader").show();
+            });
+        });
+    </script>
+
+    <script>
+
+
+
+        $(document).ready(function () {
+
+            $("#navbar").load("menu.htm", function () { updateBoostrap(); });
+            $("#bottomNavbar").load("bottomMenu.htm", function () { updateBoostrap(); });
+
+            $.ajax({ url: "/api/TeamFollow/PRSummaryB", context: document.body })
+
+
+                .done(function (data) {
+
+
+                    var objectList = data; //JSON.parse(data);
+
+                    var sprintName = objectList.sprint.name;
+
+                    $("#sprintId").text(sprintName)
+                    $("#sprintStart").text((new Date(objectList.sprint.attributes.startDate)).toLocaleDateString())
+                    $("#sprintEnd").text((new Date(objectList.sprint.attributes.finishDate)).toLocaleDateString())
+                    $("#lastUpdateDt").text((new Date(objectList.lastUpdate)).toLocaleString())
+                    $("#projectName").text(objectList.project)
+
+                    var index = 0;
+                    objectList.members.forEach(function (x) {
+
+                        var row0 = "<tr>" +
+                            "<td><img style=\"width:25px; height:25px\" class=\"vcenter img-circle\" src=" + x.user.imageUrl + " /></td>" +
+                            "<td><name class=\"col-md-12\"> " + x.user.displayName + "</name></td>" +
+                            "<td><original class=\"col-md-12\"> " + Number(x.CreatedPr).toFixed(1) + "</original></td>" +
+                            "<td><Remaining class=\"col-md-12\"> " + Number(x.CommentsAverage).toFixed(1) + "</Remaining></td>";
+
+                        var caPr = 100 * (20 - x.CommentsAverage) / 20
+
+
+                        var row4 = "<td>" + progressBar(0, 100, caPr, 90, undefined, 70, undefined) + "</td>" +
+                            "</tr>"
+
+                        $("#results tr:last")
+                            .after(row0 + row4);
+
+                        index++;
+
+                    });
+
+
+                    updateBoostrap();
+                });
+
+
+
+            console.log("document loaded");
+
+        });
+
+
+
+        $(window).on("load", function () {
+
+            console.log("window loaded");
+
+        });
+
+    </script>
+
+
+</head>
+
+<body>
+    <div id='ajax_loader' class="overlay">
+        <div class="container-fluid" style="height:100%">
+            <h1 style="margin-top:25%" class="centered text-center">loading...</h1>
+        </div>
+    </div>
+
+    <div id="navbar" class="navbar navbar-inverse navbar-fixed-top"></div>
+
+    <div class="container">
+        <h1>Team PRformance</h1>
+        <sprintDesc>
+            <span class="marginleft" id="sprintId">Sprint xxx</span>
+            <span class="pull-right marginright" id="sprintEnd"></span>
+            <span class="pull-right marginright"> To: </span>
+            <span class="pull-right marginright" id="sprintStart"></span>
+            <span class="pull-right marginright"> From: </span>
+        </sprintDesc>
+
+        <h2>Authoring</h2>
+        <div class="table-responsive">
+            <table id="results" class="table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Developer</th>
+                        <th>Created PR</th>
+                        <th>Average Comments</th>
+                        <th>Quality</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="hide" id="popover-contents" />
+
+    </div>
+
+
+
+    <div></div>
+    <div id="bottomNavbar" class="footer navbar navbar-inverse navbar-fixed-bottom" />
+
+</body>
+
+</html>
+
