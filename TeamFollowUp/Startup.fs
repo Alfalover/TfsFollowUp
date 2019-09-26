@@ -33,10 +33,8 @@ type Startup(env: IHostingEnvironment) =
                 .AddTransient<WorkItemService,WorkItemService>()
                 .AddTransient<TeamService,TeamService>()
                 .AddLogging()
-                .AddMvcCore()
-                .AddNewtonsoftJson(fun options -> options.UseMemberCasing()
-                                                  |> ignore
-                                                  )
+                .AddMvcCore(fun x -> x.EnableEndpointRouting <- false)
+                .AddJsonOptions(fun x -> x.JsonSerializerOptions.PropertyNamingPolicy <- null)
                 |> ignore
 
      member this.Configure (app: IApplicationBuilder) =

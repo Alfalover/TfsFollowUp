@@ -194,7 +194,6 @@ type TeamService(workitems : WorkItemService, capacities : CapacityService, upda
                                 |> List.map(fun pr -> pr |> this.CreatePRSummary |> this.CompletePRwithWorkItems)
                                 |> List.filter(fun pr -> pr.pr.creationDate >= sprint.attributes.startDate.Value || (pr.pr.closedDate.HasValue = false) || pr.pr.closedDate.Value >= sprint.attributes.startDate.Value)
 
-
             let members = update.GetMemberCapacities sprint.id
                            |> fun x -> x.value 
                            |> Seq.ofArray |> Seq.map(fun x -> x.teamMember)
