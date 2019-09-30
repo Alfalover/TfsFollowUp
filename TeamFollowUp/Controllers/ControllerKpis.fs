@@ -37,10 +37,10 @@ type KpiController(update : UpdateService, team: TeamService, workitems : WorkIt
                               |> JsonResult :> ActionResult
 
     [<Route("WorkItemComplete")>]
-    member this.WorkItems (wtype:string) =
+    member this.WorkItems (wtype:int) =
        
         update.SprintsList  
-        |> List.map (fun x -> workitems.GetWorkItemStats wtype x)
+        |> List.map (fun x -> workitems.GetWorkItemStats (update.GetWorkItemTypeName wtype) x)
         |> JsonResult :> ActionResult
     
  

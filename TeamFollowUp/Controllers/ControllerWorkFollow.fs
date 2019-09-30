@@ -9,6 +9,7 @@ open System
 open FSharp.Control.Reactive
 open TimeSeries
 open System.IO
+open System.Text.Json
 
 type WorkSummary = {
 
@@ -17,14 +18,26 @@ type WorkSummary = {
     lastUpdate : DateTime
 }
 
-type GroupRequest = {
-    dateFrom:DateTimeOffset 
-    dateTo:DateTimeOffset 
-    globid:string 
-    globName: string
-    id:int list 
-    field:string
-}
+//type GroupRequest = {
+//    dateFrom:DateTimeOffset 
+//    dateTo:DateTimeOffset 
+//    globid:string 
+//    globName: string
+//    id:int list 
+//    field:string
+//}
+
+[<CLIMutable>]
+type GroupRequest = 
+ {
+     dateFrom:DateTimeOffset 
+     dateTo:DateTimeOffset 
+     globid:string 
+     globName: string
+     id: System.Collections.ArrayList
+     field:string
+ }
+
 
 type serieDebugInfo = {
     request : GroupRequest
@@ -57,12 +70,12 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
                                                         })    
 
     [<Route("Summary")>]
-    member this.Summary(wtype:string) = 
+    member this.Summary(wtype:int) = 
                 
         update.SprintsList  |> List.tryFind(fun x -> x.attributes.timeFrame = TimeFrame.current)
                             |> function 
                                 | Some current -> { sprint = current
-                                                    summary = current |> workitems.GetGlobalWorkStats wtype
+                                                    summary = current |> workitems.GetGlobalWorkStats (update.GetWorkItemTypeName wtype)
                                                     lastUpdate = update.LastUpdate}
                                                   |> JsonResult :> ActionResult
                                 | None -> EmptyResult() :> ActionResult
@@ -86,14 +99,19 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
     [<HttpPost>]
     [<Route("GroupProjection")>]
     member this.GroupProjection ([<FromBody>]request:GroupRequest) : ActionResult =
-                               
-        let data = request.id |> List.map(fun x -> update.GetRevisions x)
+        
+        let arrayId = request.id.ToArray() 
+        
+        let data = arrayId
+                   |> List.ofArray
+                   |> List.map(fun x -> Convert.ToInt32(x.ToString()))
+                   |> List.ofSeq |> List.map(fun x -> update.GetRevisions x)
         
         let series = data |> List.map(fun x -> x.value |> List.ofArray 
                                                       |> this.getSerie
                                                       request.field )  
-
-
+        
+        
         let serie = series 
                          |> sumSeries request.dateFrom request.dateTo (TimeSpan.FromHours(24.0))
                          |> cutStartSerie request.dateFrom
@@ -101,7 +119,7 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
                          |> cutEndSerie request.dateTo
                          |> removeWeekends
                          |> removeNights
-
+        
         let debug = {request= request
                      sourceSeries= series
                      resultSerie = serie
@@ -133,11 +151,12 @@ type WorkFollowController(workitems : WorkItemService, update : UpdateService) =
         |> JsonResult :> ActionResult
 
     [<HttpGet>]
-    member this.Get(wtype:string) = 
+    member this.Get(wtype:int) = 
+
         update.SprintsList  
         |> List.filter(fun x -> x.attributes.timeFrame = TimeFrame.current)
         |> List.head
-        |>  workitems.GetWorkItemStats wtype
+        |>  workitems.GetWorkItemStats (update.GetWorkItemTypeName wtype)
         |> JsonResult :> ActionResult
 
 

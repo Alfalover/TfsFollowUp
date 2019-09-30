@@ -125,7 +125,7 @@
                     updateGlobals();
                 });
 
-            $.ajax({ url: "/api/WorkFollow/Summary?wtype=Product%20Backlog%20Item", context: document.body })
+            $.ajax({ url: "/api/WorkFollow/Summary?wtype=0", context: document.body })
 
 
                 .done(function (data) {
@@ -162,7 +162,7 @@
                     updateGlobals();
                 });
 
-            $.ajax({ url: "/api/WorkFollow/Summary?wtype=Bug", context: document.body })
+            $.ajax({ url: "/api/WorkFollow/Summary?wtype=1", context: document.body })
 
 
                 .done(function (data) {
@@ -220,21 +220,31 @@
 
                 .done(function (data) {
 
-                    ncanm = [anStep("A", "#netCoreA", { opacity: "+=1", left: "+=450" }, 800),
-                    anStep("A", "#netCoreL", { opacity: "+=1", left: "+=525" }, 400),
-                    anStep("T", null, null, 1000),
-                    anStep("A", "#netCoreA", { opacity: "-=1" }, 800),
-                    anStep("A", "#netCoreL", { opacity: "-=1" }, 800),
-                    ]
+                    if (data.ShowNetCore == true) {
+                        ncanm = [anStep("A", "#netCoreA", { opacity: "+=1", left: "+=450" }, 800),
+                        anStep("A", "#netCoreL", { opacity: "+=1", left: "+=525" }, 400),
+                        anStep("T", null, null, 1000),
+                        anStep("A", "#netCoreA", { opacity: "-=1" }, 800),
+                        anStep("A", "#netCoreL", { opacity: "-=1" }, 800),
+                        ]
+                    } else ¨{
+                        ncanm = []
+                    }
 
-                    anm = [anStep("A", "#dockerW", { left: "+=300" }, 1400),
-                    anStep("A", "#dockerT", { opacity: "+=1" }, 500),
-                    anStep("C", null, function () { runAnim(ncanm); }, 0),
-                    anStep("T", null, null, 1500),
-                    anStep("A", "#dockerW", { opacity: "-=1" }, 2500),
-                    ]
+                    if (data.ShowDocker == true) {
+                        anm = [anStep("A", "#dockerW", { left: "+=300" }, 1400),
+                        anStep("A", "#dockerT", { opacity: "+=1" }, 500),
+                        anStep("C", null, function () { runAnim(ncanm); }, 0),
+                        anStep("T", null, null, 1500),
+                        anStep("A", "#dockerW", { opacity: "-=1" }, 2500),
+                        ]
 
-                    runAnim(anm);
+                        runAnim(anm);
+                    } else {
+                        runAnim(ncanm);
+                    }
+
+
 
 
                 });

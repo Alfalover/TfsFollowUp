@@ -85,6 +85,11 @@
         member this.GetTeamFactors sprintGuid = fst factorCache sprintGuid
         member this.SetTeamFactors sprintGuid newValue = snd factorCache sprintGuid newValue
 
+        member this.GetWorkItemTypeName i = match i with    
+                                               | 0 -> config.Item "tfs:WorkItemId"
+                                               | 1 -> config.Item "tfs:BugId"
+                                               | _ -> ""
+
         member this.performUpdate session = 
                       
                       this.UpdateInProgress <- true; 
@@ -111,7 +116,9 @@
         
                       this.SprintsList <- sprints.value |> List.ofArray
                       this.PullRequestList <- pullRequests.value |> List.ofArray
-                      this.WorkItemsList <- wi2
+                     
+                      if not wi2.IsEmpty then this.WorkItemsList <- wi2
+
                       this.LastUpdate <- DateTime.UtcNow
         
                       if(this.SprintsList.Length > 0) then

@@ -237,11 +237,12 @@ open Microsoft.Extensions.Configuration
     
         let server = (config.Item "tfs:Url")+"/DefaultCollection/"
         let projectName = config.Item "tfs:ProjectName"
+        let teamName = config.Item "tfs:TeamName"
         let repositoryId = config.Item "tfs:RepositoryId"
 
-        let SprintsUri = System.Uri (server+projectName+"/_apis/work/teamsettings/iterations?api-version=4.1")
-        let MemberCapacitiesUri sprint = System.Uri (server+projectName+"/_apis/work/teamsettings/iterations/" + sprint + "/capacities")
-        let TeamCapacitiesUri   sprint = System.Uri (server+projectName+"/_apis/work/teamsettings/iterations/" + sprint + "/teamdaysoff?")
+        let SprintsUri = System.Uri (server+projectName+teamName+"/_apis/work/teamsettings/iterations?api-version=4.1")
+        let MemberCapacitiesUri sprint = System.Uri (server+projectName+teamName+"/_apis/work/teamsettings/iterations/" + sprint + "/capacities")
+        let TeamCapacitiesUri   sprint = System.Uri (server+projectName+teamName+"/_apis/work/teamsettings/iterations/" + sprint + "/teamdaysoff?")
         let WorkItemsUri queryId = System.Uri (server+projectName+"/_apis/wit/wiql/"+ queryId + "?api-version=4.1")
         let WorkItemUri (ids,fields) = System.Uri (server+projectName+"/_apis/wit/workitems?ids=" + ids + "&fields=" + fields + "&api-version=4.1")
         let WorkItemUri2 (ids) = System.Uri (server+projectName+"/_apis/wit/workitems?ids=" + ids + "&api-version=4.1")

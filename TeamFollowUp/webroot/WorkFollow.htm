@@ -76,7 +76,7 @@
 			$("#navbar").load("menu.htm",function() { updateBoostrap(); });
 			$("#bottomNavbar").load("bottomMenu.htm",function() { updateBoostrap(); });
 		
-            $.ajax({ url: "/api/WorkFollow?wtype=Product%20Backlog%20Item", context: document.body })
+            $.ajax({ url: "/api/WorkFollow?wtype=0", context: document.body })
 
 
                 .done(function (data) {
@@ -97,7 +97,7 @@
 
                 });
 				
-			$.ajax({ url: "/api/WorkFollow?wtype=Bug", context: document.body })
+			$.ajax({ url: "/api/WorkFollow?wtype=1", context: document.body })
 
 
                 .done(function (data) {

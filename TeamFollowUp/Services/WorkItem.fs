@@ -74,13 +74,14 @@
                 |> this.MapOutput sprint   
 
         member this.GetWorkItemStats kind sprint =     
-            upd.WorkItemsList 
-                |> List.filter(fun x -> x.fields.``System.WorkItemType`` = kind)
-                |> List.filter(fun x -> x.children |> List.ofArray
-                                                   |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path) 
-                                                   |> List.length > 0)
-                |> this.MapOutput sprint   
-                
+            let a = upd.WorkItemsList 
+                    |> List.filter(fun x -> x.fields.``System.WorkItemType`` = kind)
+                    
+            let b = a |> List.filter(fun x -> x.children |> List.ofArray
+                                                         |> List.filter(fun y -> y.fields.``System.IterationPath`` = sprint.path) 
+                                                         |> List.length > 0)
+            b |> this.MapOutput sprint   
+                            
         member this.GetAllStats sprint =     
             upd.WorkItemsList 
                 |> List.filter(fun x -> x.children |> List.ofArray
