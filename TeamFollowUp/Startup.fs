@@ -76,9 +76,12 @@ let TfsFollowUpInitialize (argv:string[]) =
 
             printfn "%s" hostAddress
 
-            let cfgFiles = Directory.EnumerateFiles("/run/secrets/")
-                            |> Seq.filter(fun file -> file.Contains("tfsfollowup"))
-                            |> Seq.tryHead
+            let cfgFiles = Directory.Exists("/run/secrets/")
+                            |> function 
+                                | true ->  Directory.EnumerateFiles("/run/secrets/")
+                                            |> Seq.filter(fun file -> file.Contains("tfsfollowup"))
+                                            |> Seq.tryHead
+                                | _    -> None
 
             let configure =
                  cfgFiles
