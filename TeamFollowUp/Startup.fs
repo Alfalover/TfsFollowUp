@@ -67,7 +67,7 @@ let GetExecutingDirectoryName() =
 
 let TfsFollowUpInitialize (argv:string[]) =
 
-            printfn "Tfs Toni's follow up Tooling... rev 4"
+            printfn "Tfs Toni's follow up Tooling... rev 5"
 
             // Web server
             let execPath = GetExecutingDirectoryName()
@@ -76,15 +76,19 @@ let TfsFollowUpInitialize (argv:string[]) =
 
             printfn "%s" hostAddress
 
+            let cfgFiles = Directory.EnumerateFiles("/run/secrets/")
+                            |> Seq.filter(fun file -> file.Contains("tfsfollowup"))
+                            |> Seq.tryHead
+
             let configure =
-                File.Exists("/run/secrets/tfsfollowup")
+                 cfgFiles
                  |> function
-                    | true -> 
-                         printfn "--> using docker secret..."
+                    | Some file -> 
+                         printfn "--> using docker secret... %s" file
                          new Action<IConfigurationBuilder> (
-                             fun x -> x.AddJsonFile("/run/secrets/tfsfollowup",false,true)  |> ignore
+                             fun x -> x.AddJsonFile(file,false,true)  |> ignore
                                       )
-                    | false -> 
+                    | None -> 
                          printfn "--> using local appsettings.json.."
                          new Action<IConfigurationBuilder> (
                              fun x -> x.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(),"appsettings.json"),false,true)  |> ignore
