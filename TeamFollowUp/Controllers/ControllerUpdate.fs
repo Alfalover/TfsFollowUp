@@ -39,12 +39,20 @@ type UpdateController(sessionService: SessionService, update : UpdateService, co
     [<Route("Factor")>]
     member this.UpdateFactor (sprint:string) (tmember:string) (newFactor:double) =
         update.GetTeamFactors sprint 
-            |> fun x -> {
-                            memberFactorList.count = x.count
-                            value = x.value 
-                                    |>Array.map(fun x -> x.teamMemberId = tmember
-                                                         |> function 
-                                                            | true -> {x with factor=newFactor}
-                                                            | false -> x )
-                        }
+            |> fun x ->
+                        x.value |>Array.exists(fun m -> m.teamMemberId = tmember)
+                                |> function 
+                                    | true ->
+                                                {    x with 
+                                                        value = x.value 
+                                                            |>Array.map(fun x -> x.teamMemberId = tmember
+                                                                                 |> function 
+                                                                                    | true -> {x with factor=newFactor}
+                                                                                    | false -> x )
+                                                }
+                                    | false ->{ x with count= x.count+1
+                                                       value = x.value |> Array.append [|{ teamMemberId = tmember 
+                                                                                           factor = newFactor}|]
+                                                
+                                    }
             |> update.SetTeamFactors sprint
