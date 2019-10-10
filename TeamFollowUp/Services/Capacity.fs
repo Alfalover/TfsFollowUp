@@ -14,7 +14,7 @@
              factors.value |> Array.tryFind(fun x -> x.teamMemberId = user.id)
                            |> function 
                               | Some x -> x.factor  
-                              | None -> 0.0
+                              | None -> 1.0
 
 
     let GetUserCapacity (m,sStart :Nullable<DateTime>,sEnd :Nullable<DateTime>,t) = 
