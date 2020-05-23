@@ -37,14 +37,18 @@
  
  Setup appsettings.json
   
- Currently only tested on Windows Domain 
+ Credentials:
  
  ```{
   "credentials": {
     "user": "user",
     "password": null,
     "domain": "domain"
-  }```
+  }
+  ```
+   *Currently only tested on Windows Domain 
+  
+    Azure DevOps/Tfs settings:
   
   ```
   "tfs": {
@@ -56,22 +60,22 @@
     "QueryId": "6b342a42-0be8-49fb-aa25-3db08bbb9903",
     "UpdatePeriodSeconds": 300,
     "UpdateDisabled": "true"
-  }```
+  }
+  ```
   
-   
-     This application uses ProjectName and TeamName to request capacity and sprint list 
-     the usual Azure DevOps api request is :
-	 Url+ProjectName+TeamName+/Api blabla 
-	 
-	 You need to create a query in TFS where this application will gather workitems information 
-	 usually when you are showing a query at Azure DevOps / TFS
-	 http://url/DefaultCollection/ProjectName/_queries/query/c01d8865-1422-48a3-87d6-6ab4ed345e8c/
-	 
-	 UpdateDisabled should be False, I added that because I usually develop this app on my conmute to work
-	 and I have a very unstable Internet communication. with True force app to no refresh from TFS and use
-	 cache files.
+  This application uses ProjectName and TeamName to request capacity and sprint list 
+  the usual Azure DevOps api request is :
+  Url+ProjectName+TeamName+/Api blabla 
+	
+  You need to create a query in TFS where this application will gather workitems information 
+  usually when you are showing a query at Azure DevOps / TFS
+  http://url/DefaultCollection/ProjectName/_queries/query/c01d8865-1422-48a3-87d6-6ab4ed345e8c/
+	
+  UpdateDisabled should be False, I added that because I usually develop this app on my conmute to work
+  and I have a very unstable Internet communication. with True force app to no refresh from TFS and use
+  cache files.
   
- ``` 
+  ``` 
   "folders": {
     "cache": "./Data"
   }
@@ -79,7 +83,6 @@
   
   Where to store cache files.
 
-}
  
  ### Running.
  Basically run TeamFollowUpConsole or its built executable.
