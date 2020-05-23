@@ -1,4 +1,4 @@
-# Azure DevOps
+# TFS/Azure DevOps Follow up Tool
 
 ## Introduction
   I Initially create it to Learning F# , but become an useful daily tool in my job to monitor Sprint health.
@@ -7,26 +7,26 @@
   
   Current features: 
   
-    - General summary screen 
+    General summary screen 
 		Counts Remaining work by task type (feature or bug)
 		Counts completed work by task and compare with the remaining time 
 		Taking into account Team members capacity 
 		Summary of workitems by state
 		Also check completeness of the hour informed by team members.
 		
-	- Tracking hour follow up 
+	Tracking hour follow up 
 		By Team member, compute how may hour are missing from its capacity 
 		Allow show summary table where hour are set
 		
-    - WorkItem Followup
+    WorkItem Followup
 	    If Effort and estimation are set in hours, this page will be useful 
 		it shows progress and deviation
 		
-	- Detailed Burndown 
+	Detailed Burndown 
 	    Shows a burndown with all task stacked and allow play removing or adding
 		Also you can open the burndown of a simple workitem.
 	
-	- Developer Burndown
+	Developer Burndown
 	   Totally experimental
 	   
 	**This is completely experimental, no warranty**
@@ -38,17 +38,15 @@
  Setup appsettings.json
   
  Currently only tested on Windows Domain 
- `<
- {
+ 
+ ```{
   "credentials": {
     "user": "user",
     "password": null,
     "domain": "domain"
-  }
-  >`
+  }```
   
-   `<
-  ,
+  ```
   "tfs": {
     "Url": "http://tfs.yourTFSurl.com",
     "ProjectName": "Project Name",
@@ -58,8 +56,8 @@
     "QueryId": "6b342a42-0be8-49fb-aa25-3db08bbb9903",
     "UpdatePeriodSeconds": 300,
     "UpdateDisabled": "true"
-  },
-   >`
+  }```
+  
    
      This application uses ProjectName and TeamName to request capacity and sprint list 
      the usual Azure DevOps api request is :
@@ -73,11 +71,13 @@
 	 and I have a very unstable Internet communication. with True force app to no refresh from TFS and use
 	 cache files.
   
-  
+ ``` 
   "folders": {
     "cache": "./Data"
   }
-	where to store cache files.
+  ```
+  
+  Where to store cache files.
 
 }
  
